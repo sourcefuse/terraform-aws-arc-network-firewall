@@ -31,18 +31,3 @@ variable "delete_protection" {
   type        = bool
   default     = false
 }
-
-variable "tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default = {
-    Environment = "demo"
-    Project     = "network-firewall-advanced"
-  }
-}
-
-variable "trusted_account_arn" {
-  description = "ARN of the trusted AWS account for resource policy"
-  type        = string
-  default     = "arn:aws:iam::884360309640:root"
-}

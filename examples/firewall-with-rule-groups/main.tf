@@ -113,7 +113,7 @@ module "network_firewall" {
         ]
         effect = "Allow"
         principals = {
-          aws = [var.trusted_account_arn]
+          aws = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
         }
       }
     ]

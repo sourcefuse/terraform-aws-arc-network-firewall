@@ -6,11 +6,9 @@
 
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=sourcefuse_terraform-aws-arc-network-firewall&token=50e6ee25f84e3f8c4a858442d123b2942008e212)](https://sonarcloud.io/summary/new_code?id=sourcefuse_terraform-aws-arc-network-firewall)
 
-[![Known Vulnerabilities](https://github.com/sourcefuse/terraform-aws-arc-network-firewall/actions/workflows/snyk.yaml/badge.svg)](https://github.com/sourcefuse/terraform-aws-arc-network-firewall/actions/workflows/snyk.yaml)
+## Overview
 
-# AWS Network Firewall Terraform Module
-
-A comprehensive, production-ready Terraform module for deploying AWS Network Firewall with support for both VPC-attached and Transit Gateway-attached configurations.
+SourceFuse AWS Reference Architecture (ARC) Terraform module for managing the AWS Network Firewall module.
 
 ## Features
 
@@ -25,18 +23,25 @@ A comprehensive, production-ready Terraform module for deploying AWS Network Fir
 
 ## Usage
 
-### Basic  Firewall
+### Basic VPC-Attached Firewall
 
 ```hcl
 module "network_firewall" {
-  source = "./modules/network-firewall"
+  source = "sourcefuse/arc-network-firewall/aws"
 
-  name       = "my-network-firewall"
-  vpc_id     = "vpc-12345678"
-  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+  name        = "my-network-firewall"
+  description = "Basic Network Firewall"
+  
+  create_firewall = true
+  vpc_id          = "vpc-12345678"
+  subnet_ids      = ["subnet-12345678", "subnet-87654321"]
 
-  # Basic firewall policy
   create_firewall_policy = true
+  firewall_policy_config = {
+    name                               = "my-firewall-policy"
+    stateless_default_actions          = ["aws:forward_to_sfe"]
+    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
+  }
   
   tags = {
     Environment = "production"
@@ -49,45 +54,46 @@ module "network_firewall" {
 
 ```hcl
 module "network_firewall" {
-  source = "./modules/network-firewall"
+  source = "sourcefuse/arc-network-firewall/aws"
 
   name        = "advanced-firewall"
   description = "Production firewall with custom rules"
   
-  vpc_id     = "vpc-12345678"
-  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+  create_firewall = true
+  vpc_id          = "vpc-12345678"
+  subnet_ids      = ["subnet-12345678", "subnet-87654321"]
 
-  # Advanced policy configuration
-  create_firewall_policy = true
-  stateful_engine_options = {
-    rule_order              = "STRICT_ORDER"
-    stream_exception_policy = "DROP"
+  firewall_config = {
+    delete_protection                   = true
+    subnet_change_protection            = true
+    firewall_policy_change_protection   = true
+    encryption_configuration = {
+      type   = "CUSTOMER_KMS"
+      key_id = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012"
+    }
   }
 
-  # Rule groups
+  create_firewall_policy = true
+  firewall_policy_config = {
+    name        = "advanced-policy"
+    description = "Advanced firewall policy with custom rules"
+    stateless_default_actions          = ["aws:forward_to_sfe"]
+    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
+    stateful_engine_options = {
+      rule_order              = "STRICT_ORDER"
+      stream_exception_policy = "DROP"
+    }
+  }
+
+  # Custom rule groups
   stateful_rule_groups = [
     {
-      resource_arn = aws_networkfirewall_rule_group.custom.arn
-      priority     = 100
+      name        = "custom-rules"
+      capacity    = 100
+      description = "Custom stateful rules"
+      rules_file  = "rules/custom.rules"
     }
   ]
-
-  # Logging
-  enable_logging = true
-  logging_config = [
-    {
-      log_destination_type = "CloudWatchLogs"
-      log_type            = "ALERT"
-      log_destination = {
-        logGroup = "/aws/networkfirewall/alerts"
-      }
-    }
-  ]
-
-  # Protection settings
-  delete_protection                 = true
-  subnet_change_protection          = true
-  firewall_policy_change_protection = true
 
   tags = {
     Environment = "production"
@@ -100,13 +106,22 @@ module "network_firewall" {
 
 ```hcl
 module "network_firewall" {
-  source = "./modules/network-firewall"
+  source = "sourcefuse/arc-network-firewall/aws"
 
   name               = "tgw-firewall"
-  transit_gateway_id = "tgw-12345678"
   availability_zones = ["use1-az1", "use1-az2"]
 
+  create_firewall = true
+  firewall_config = {
+    transit_gateway_id = "tgw-12345678"
+  }
+
   create_firewall_policy = true
+  firewall_policy_config = {
+    name                               = "tgw-policy"
+    stateless_default_actions          = ["aws:forward_to_sfe"]
+    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
+  }
   
   tags = {
     Environment = "production"
@@ -119,19 +134,27 @@ module "network_firewall" {
 
 ```hcl
 module "network_firewall" {
-  source = "./modules/network-firewall"
+  source = "sourcefuse/arc-network-firewall/aws"
 
-  name       = "firewall-with-tls"
-  vpc_id     = "vpc-12345678"
-  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+  name        = "firewall-with-tls"
+  description = "Network Firewall with TLS inspection"
+  
+  create_firewall = true
+  vpc_id          = "vpc-12345678"
+  subnet_ids      = ["subnet-12345678", "subnet-87654321"]
 
   create_firewall_policy = true
+  firewall_policy_config = {
+    name                               = "tls-inspection-policy"
+    stateless_default_actions          = ["aws:forward_to_sfe"]
+    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
+    tls_inspection_configuration_arn   = aws_networkfirewall_tls_inspection_configuration.example.arn
+  }
   
-  # TLS Inspection Configuration
   create_tls_inspection_configuration = true
   tls_inspection_configuration = {
     name        = "tls-inspection-config"
-    description = "TLS inspection for inbound and outbound traffic"
+    description = "TLS inspection for HTTPS traffic"
     
     encryption_configuration = {
       type   = "AWS_OWNED_KMS_KEY"
@@ -140,7 +163,6 @@ module "network_firewall" {
 
     server_certificate_configurations = [
       {
-        # Inbound inspection
         server_certificates = [
           {
             resource_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
@@ -188,15 +210,22 @@ module "network_firewall" {
 
 ```hcl
 module "network_firewall" {
-  source = "./modules/network-firewall"
+  source = "sourcefuse/arc-network-firewall/aws"
 
-  name       = "firewall-with-policy"
-  vpc_id     = "vpc-12345678"
-  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+  name        = "firewall-with-policy"
+  description = "Network Firewall with resource policy"
+  
+  create_firewall = true
+  vpc_id          = "vpc-12345678"
+  subnet_ids      = ["subnet-12345678", "subnet-87654321"]
 
   create_firewall_policy = true
+  firewall_policy_config = {
+    name                               = "shared-policy"
+    stateless_default_actions          = ["aws:forward_to_sfe"]
+    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
+  }
   
-  # Resource policy for cross-account access
   create_firewall_policy_resource_policy = true
   firewall_policy_resource_policy = {
     statements = [
@@ -213,6 +242,12 @@ module "network_firewall" {
         }
       }
     ]
+  }
+
+  tags = {
+    Environment = "production"
+    Project     = "security"
+  }
   }
 
   tags = {

@@ -14,3 +14,5 @@ data "aws_subnets" "public" {
     ]
   }
 }
+
+data "aws_caller_identity" "current" {}

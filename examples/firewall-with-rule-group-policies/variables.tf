@@ -21,18 +21,3 @@ variable "name" {
   type        = string
   default     = "firewall-with-rule-group-policies"
 }
-
-variable "trusted_account_arn" {
-  description = "ARN of the trusted AWS account for resource policy"
-  type        = string
-  default     = "arn:aws:iam::884360309640:root"
-}
-
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default = {
-    Environment = "example"
-    Project     = "network-firewall"
-  }
-}
