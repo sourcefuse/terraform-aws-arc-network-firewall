@@ -23,7 +23,7 @@ SourceFuse AWS Reference Architecture (ARC) Terraform module for managing the AW
 
 ## Usage
 
-### Basic VPC-Attached Firewall
+### Basic Firewall
 
 ```hcl
 module "network_firewall" {
@@ -49,59 +49,6 @@ module "network_firewall" {
   }
 }
 ```
-
-### Advanced Configuration with Rule Groups
-
-```hcl
-module "network_firewall" {
-  source = "sourcefuse/arc-network-firewall/aws"
-
-  name        = "advanced-firewall"
-  description = "Production firewall with custom rules"
-
-  create_firewall = true
-  vpc_id          = "vpc-12345678"
-  subnet_ids      = ["subnet-12345678", "subnet-87654321"]
-
-  firewall_config = {
-    delete_protection                   = true
-    subnet_change_protection            = true
-    firewall_policy_change_protection   = true
-    encryption_configuration = {
-      type   = "CUSTOMER_KMS"
-      key_id = "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012"
-    }
-  }
-
-  create_firewall_policy = true
-  firewall_policy_config = {
-    name        = "advanced-policy"
-    description = "Advanced firewall policy with custom rules"
-    stateless_default_actions          = ["aws:forward_to_sfe"]
-    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
-    stateful_engine_options = {
-      rule_order              = "STRICT_ORDER"
-      stream_exception_policy = "DROP"
-    }
-  }
-
-  # Custom rule groups
-  stateful_rule_groups = [
-    {
-      name        = "custom-rules"
-      capacity    = 100
-      description = "Custom stateful rules"
-      rules_file  = "rules/custom.rules"
-    }
-  ]
-
-  tags = {
-    Environment = "production"
-    Project     = "security"
-  }
-}
-```
-
 ### Transit Gateway-Attached Firewall
 
 ```hcl
@@ -121,82 +68,6 @@ module "network_firewall" {
     name                               = "tgw-policy"
     stateless_default_actions          = ["aws:forward_to_sfe"]
     stateless_fragment_default_actions = ["aws:forward_to_sfe"]
-  }
-
-  tags = {
-    Environment = "production"
-    Project     = "security"
-  }
-}
-```
-
-### Firewall with TLS Inspection
-
-```hcl
-module "network_firewall" {
-  source = "sourcefuse/arc-network-firewall/aws"
-
-  name        = "firewall-with-tls"
-  description = "Network Firewall with TLS inspection"
-
-  create_firewall = true
-  vpc_id          = "vpc-12345678"
-  subnet_ids      = ["subnet-12345678", "subnet-87654321"]
-
-  create_firewall_policy = true
-  firewall_policy_config = {
-    name                               = "tls-inspection-policy"
-    stateless_default_actions          = ["aws:forward_to_sfe"]
-    stateless_fragment_default_actions = ["aws:forward_to_sfe"]
-    tls_inspection_configuration_arn   = aws_networkfirewall_tls_inspection_configuration.example.arn
-  }
-
-  create_tls_inspection_configuration = true
-  tls_inspection_configuration = {
-    name        = "tls-inspection-config"
-    description = "TLS inspection for HTTPS traffic"
-
-    encryption_configuration = {
-      type   = "AWS_OWNED_KMS_KEY"
-      key_id = "AWS_OWNED_KMS_KEY"
-    }
-
-    server_certificate_configurations = [
-      {
-        server_certificates = [
-          {
-            resource_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
-          }
-        ]
-        scopes = [
-          {
-            protocols = [6]
-            destinations = [
-              {
-                address_definition = "10.0.0.0/8"
-              }
-            ]
-            destination_ports = [
-              {
-                from_port = 443
-                to_port   = 443
-              }
-            ]
-            sources = [
-              {
-                address_definition = "0.0.0.0/0"
-              }
-            ]
-            source_ports = [
-              {
-                from_port = 0
-                to_port   = 65535
-              }
-            ]
-          }
-        ]
-      }
-    ]
   }
 
   tags = {
@@ -248,12 +119,6 @@ module "network_firewall" {
     Environment = "production"
     Project     = "security"
   }
-  }
-
-  tags = {
-    Environment = "production"
-    Project     = "security"
-  }
 }
 ```
 
@@ -269,36 +134,6 @@ The `examples/` directory contains complete, working examples:
 - **[firewall-with-tls-inspection](./examples/firewall-with-tls-inspection/)**: Basic TLS inspection configuration
 - **[advanced-tls-inspection](./examples/advanced-tls-inspection/)**: Advanced TLS inspection with multiple certificates and KMS
 - **[transit-gateway-firewall](./examples/transit-gateway-firewall/)**: Transit Gateway-attached firewall
-
-## Architecture Patterns
-
-### VPC-Attached Firewall
-```
-Internet Gateway
-       |
-   Route Table
-       |
-   Public Subnet
-       |
-Network Firewall Endpoint
-       |
-   Private Subnet
-       |
-   Application Resources
-```
-
-### Transit Gateway-Attached Firewall
-```
-    VPC A          VPC B
-      |              |
-      +------+-------+
-             |
-    Transit Gateway
-             |
-   Network Firewall
-             |
-      Internet/Other VPCs
-```
 
 ## Security Best Practices
 
