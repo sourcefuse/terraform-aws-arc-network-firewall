@@ -28,15 +28,15 @@ To use the module in your Terraform configuration, include the following source 
 ```hcl
 module "arc-network-firewall" {
   source  = "sourcefuse/arc-network-firewall/aws"
-  version = "~> 1.0"
-  
+  version = "0.0.1"
+
   # Required variables
   name                    = "my-network-firewall"
   vpc_id                  = "vpc-12345678"
   subnet_ids              = ["subnet-12345678", "subnet-87654321"]
   create_firewall         = true
   create_firewall_policy  = true
-  
+
   tags = {
     Environment = "production"
     Project     = "security"
@@ -64,9 +64,9 @@ To integrate the module with your existing Terraform mono repo configuration, fo
 
 Ensure that the AWS credentials used to execute Terraform have the necessary permissions to create, list and modify:
 
-- AWS Network Firewall resources 
-- VPC and subnet resources 
-- IAM roles and policies for logging 
+- AWS Network Firewall resources
+- VPC and subnet resources
+- IAM roles and policies for logging
 - CloudWatch Logs groups
 - S3 buckets for logging
 - KMS keys for encryption
@@ -106,59 +106,6 @@ This example will create:
 - Firewall policy with default actions
 - Firewall endpoints in specified subnets
 - Basic logging configuration
-
-### Advanced Usage Examples
-
-#### VPC-Attached Firewall with Custom Rules
-```hcl
-module "network_firewall_advanced" {
-  source = "sourcefuse/arc-network-firewall/aws"
-  
-  name        = "advanced-firewall"
-  vpc_id      = var.vpc_id
-  subnet_ids  = var.subnet_ids
-  
-  create_firewall        = true
-  create_firewall_policy = true
-  
-  firewall_config = {
-    delete_protection                   = true
-    subnet_change_protection            = true
-    firewall_policy_change_protection   = true
-    encryption_configuration = {
-      type   = "CUSTOMER_KMS"
-      key_id = aws_kms_key.firewall.arn
-    }
-  }
-  
-  # Custom rule groups
-  stateful_rule_groups = [
-    {
-      name        = "block-malicious-domains"
-      capacity    = 100
-      description = "Block known malicious domains"
-      rules_file  = "rules/malicious-domains.rules"
-    }
-  ]
-}
-```
-
-#### Transit Gateway-Attached Firewall
-```hcl
-module "tgw_firewall" {
-  source = "sourcefuse/arc-network-firewall/aws"
-  
-  name               = "tgw-firewall"
-  availability_zones = ["use1-az1", "use1-az2"]
-  
-  firewall_config = {
-    transit_gateway_id = var.transit_gateway_id
-  }
-  
-  create_firewall        = true
-  create_firewall_policy = true
-}
-```
 
 ### Tips and Recommendations
 
@@ -221,4 +168,3 @@ This module is licensed under the Apache 2.0 license. Refer to the [LICENSE](../
 ### Open Source Contribution
 
 Contribute to open source by using and enhancing this module. Your contributions are welcome!
-
