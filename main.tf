@@ -58,7 +58,7 @@ resource "aws_networkfirewall_firewall" "this" {
 
 
 ##########################################
-### Network Firewall Policy 
+### Network Firewall Policy
 ##########################################
 resource "aws_networkfirewall_firewall_policy" "this" {
   count = var.create_firewall_policy ? 1 : 0
@@ -179,7 +179,7 @@ resource "aws_cloudwatch_log_group" "firewall_logs" {
   }
 
   name              = "/aws/network-firewall/${each.key}"
-  retention_in_days = 30
+  retention_in_days = var.log_retention_days
 }
 
 ##############################################

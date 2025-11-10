@@ -84,24 +84,6 @@ module "network_firewall" {
     }
   }
 
-
-  # Custom Actions
-  stateless_custom_actions = [
-    {
-      action_name = "CustomMetricAction"
-      action_definition = {
-        publish_metric_action = {
-          dimensions = [
-            {
-              value = "CustomDimension"
-            }
-          ]
-        }
-      }
-    }
-  ]
-
-
   # Resource policy for firewall policy
   create_firewall_policy_resource_policy = true
   firewall_policy_resource_policy = {

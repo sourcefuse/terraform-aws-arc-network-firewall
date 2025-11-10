@@ -19,18 +19,8 @@ variable "namespace" {
   description = "Namespace of the project, i.e. arc"
 }
 
-
 variable "firewall_name" {
   description = "Name of the Network Firewall"
   type        = string
   default     = "basic-network-firewall"
-}
-
-variable "tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default = {
-    Environment = "demo"
-    Project     = "network-firewall-basic"
-  }
 }

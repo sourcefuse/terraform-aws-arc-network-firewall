@@ -120,50 +120,6 @@ variable "firewall_policy_arn" {
   default     = null
 }
 
-variable "tls_inspection_configuration_arn" {
-  description = "ARN of TLS inspection configuration"
-  type        = string
-  default     = null
-}
-
-# Rule Groups
-variable "stateless_rule_groups" {
-  description = "List of stateless rule group references"
-  type = list(object({
-    resource_arn = string
-    priority     = number
-  }))
-  default = []
-}
-
-variable "stateful_rule_groups" {
-  description = "List of stateful rule group references"
-  type = list(object({
-    resource_arn           = string
-    priority               = optional(number)
-    deep_threat_inspection = optional(bool, false)
-    override = optional(object({
-      action = string
-    }))
-  }))
-  default = []
-}
-
-variable "stateless_custom_actions" {
-  description = "Custom actions for stateless rules"
-  type = list(object({
-    action_name = string
-    action_definition = object({
-      publish_metric_action = object({
-        dimensions = list(object({
-          value = string
-        }))
-      })
-    })
-  }))
-  default = []
-}
-
 # Logging Configuration
 variable "enable_logging" {
   type    = bool
@@ -201,6 +157,19 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "log_retention_days" {
+  description = "CloudWatch log retention period in days"
+  type        = number
+  default     = 7
+  validation {
+    condition = contains([
+      1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+    ], var.log_retention_days)
+    error_message = "Log retention days must be a valid CloudWatch retention period."
+  }
+}
+
 
 # Resource Policy Configuration
 variable "create_firewall_policy_resource_policy" {

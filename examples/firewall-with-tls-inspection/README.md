@@ -33,54 +33,51 @@ Internet ←→ Network Firewall (TLS Inspection) ←→ VPC Resources
 - **Revocation Check**: REJECT revoked certificates, PASS unknown status
 - **Scope**: Traffic from internal networks (10.0.0.0/8) to any destination
 
-## Usage
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+## Requirements
 
-1. Update domain names in `variables.tf` or provide them via tfvars:
-   ```hcl
-   inbound_domain_name    = "your-inbound-domain.com"
-   outbound_ca_domain_name = "your-ca-domain.com"
-   ```
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0 |
 
-2. Run Terraform commands:
-   ```bash
-   terraform init
-   terraform plan
-   terraform apply
-   ```
+## Providers
 
-## Certificate Requirements
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.16.0 |
 
-- **Inbound Certificate**: Must be a valid SSL/TLS server certificate in ACM
-- **Outbound CA Certificate**: Must be a Certificate Authority certificate in ACM
-- **Validation**: Both certificates use DNS validation method
+## Modules
 
-## Security Considerations
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_network_firewall"></a> [network\_firewall](#module\_network\_firewall) | ../../ | n/a |
+| <a name="module_tags"></a> [tags](#module\_tags) | sourcefuse/arc-tags/aws | 1.2.3 |
 
-1. **Certificate Management**: Ensure certificates are properly validated and renewed
-2. **Revocation Checking**: Configure appropriate actions for revoked/unknown certificates
-3. **Scope Configuration**: Limit inspection to necessary traffic patterns
-4. **Encryption**: Uses AWS-owned KMS keys for configuration encryption
+## Resources
 
-## Variables
+| Name | Type |
+|------|------|
+| [aws_ssm_parameter.inbound_cert](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.outbound_ca](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_subnets.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
+| [aws_vpc.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `inbound_domain_name` | Domain for inbound certificate | `inbound.example.com` |
-| `outbound_ca_domain_name` | Domain for CA certificate | `ca.example.com` |
-| `region` | AWS region | `us-east-1` |
-| `environment` | Environment name | `poc` |
-| `namespace` | Resource namespace | `arc` |
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_environment"></a> [environment](#input\_environment) | Environment name | `string` | `"poc"` | no |
+| <a name="input_name"></a> [name](#input\_name) | Name of the Network Firewall | `string` | `"firewall-with-tls-inspection"` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace for resources | `string` | `"arc"` | no |
+| <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | `"us-east-1"` | no |
 
 ## Outputs
 
-- `firewall_arn`: ARN of the Network Firewall
-- `tls_inspection_configuration_arn`: ARN of the TLS inspection configuration
-- `inbound_certificate_arn`: ARN of the inbound certificate
-- `outbound_ca_certificate_arn`: ARN of the outbound CA certificate
-
-## Important Notes
-
-1. **Certificate Validation**: You must complete DNS validation for ACM certificates
-2. **Traffic Impact**: TLS inspection may impact network performance
-3. **Compliance**: Ensure TLS inspection complies with your security policies
-4. **Cost**: TLS inspection incurs additional charges based on processed traffic
+| Name | Description |
+|------|-------------|
+| <a name="output_firewall_arn"></a> [firewall\_arn](#output\_firewall\_arn) | ARN of the Network Firewall |
+| <a name="output_firewall_policy_arn"></a> [firewall\_policy\_arn](#output\_firewall\_policy\_arn) | ARN of the firewall policy |
+| <a name="output_tls_inspection_configuration_arn"></a> [tls\_inspection\_configuration\_arn](#output\_tls\_inspection\_configuration\_arn) | ARN of the TLS inspection configuration |
+| <a name="output_tls_inspection_configuration_id"></a> [tls\_inspection\_configuration\_id](#output\_tls\_inspection\_configuration\_id) | ID of the TLS inspection configuration |
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

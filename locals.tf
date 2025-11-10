@@ -19,16 +19,4 @@ locals {
       availability_zone_id = az_id
     }
   ] : []
-
-  # Validate configuration
-  validate_firewall_type = local.is_vpc_attached || local.is_tgw_attached ? true : tobool("Either VPC or Transit Gateway configuration must be provided")
-  validate_policy_arn = (
-    # If firewall is not being created, skip validation
-    var.create_firewall == false
-    ||
-    # If creating firewall, either policy must be created or provided
-    var.create_firewall_policy == true
-    || var.firewall_policy_arn != null
-  ) ? true : false
-
 }

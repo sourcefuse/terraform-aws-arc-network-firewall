@@ -31,7 +31,7 @@ module "network_firewall" {
 
   name        = "my-network-firewall"
   description = "Basic Network Firewall"
-  
+
   create_firewall = true
   vpc_id          = "vpc-12345678"
   subnet_ids      = ["subnet-12345678", "subnet-87654321"]
@@ -42,7 +42,7 @@ module "network_firewall" {
     stateless_default_actions          = ["aws:forward_to_sfe"]
     stateless_fragment_default_actions = ["aws:forward_to_sfe"]
   }
-  
+
   tags = {
     Environment = "production"
     Project     = "security"
@@ -58,7 +58,7 @@ module "network_firewall" {
 
   name        = "advanced-firewall"
   description = "Production firewall with custom rules"
-  
+
   create_firewall = true
   vpc_id          = "vpc-12345678"
   subnet_ids      = ["subnet-12345678", "subnet-87654321"]
@@ -122,7 +122,7 @@ module "network_firewall" {
     stateless_default_actions          = ["aws:forward_to_sfe"]
     stateless_fragment_default_actions = ["aws:forward_to_sfe"]
   }
-  
+
   tags = {
     Environment = "production"
     Project     = "security"
@@ -138,7 +138,7 @@ module "network_firewall" {
 
   name        = "firewall-with-tls"
   description = "Network Firewall with TLS inspection"
-  
+
   create_firewall = true
   vpc_id          = "vpc-12345678"
   subnet_ids      = ["subnet-12345678", "subnet-87654321"]
@@ -150,12 +150,12 @@ module "network_firewall" {
     stateless_fragment_default_actions = ["aws:forward_to_sfe"]
     tls_inspection_configuration_arn   = aws_networkfirewall_tls_inspection_configuration.example.arn
   }
-  
+
   create_tls_inspection_configuration = true
   tls_inspection_configuration = {
     name        = "tls-inspection-config"
     description = "TLS inspection for HTTPS traffic"
-    
+
     encryption_configuration = {
       type   = "AWS_OWNED_KMS_KEY"
       key_id = "AWS_OWNED_KMS_KEY"
@@ -214,7 +214,7 @@ module "network_firewall" {
 
   name        = "firewall-with-policy"
   description = "Network Firewall with resource policy"
-  
+
   create_firewall = true
   vpc_id          = "vpc-12345678"
   subnet_ids      = ["subnet-12345678", "subnet-87654321"]
@@ -225,7 +225,7 @@ module "network_firewall" {
     stateless_default_actions          = ["aws:forward_to_sfe"]
     stateless_fragment_default_actions = ["aws:forward_to_sfe"]
   }
-  
+
   create_firewall_policy_resource_policy = true
   firewall_policy_resource_policy = {
     statements = [
@@ -310,7 +310,7 @@ Network Firewall Endpoint
 - **Tagging**: Implement consistent tagging for resource management
 
 
-<!-- BEGIN_TF_DOCS -->
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
 ## Requirements
 
 | Name | Version |
@@ -362,17 +362,14 @@ Network Firewall Endpoint
 | <a name="input_firewall_policy_arn"></a> [firewall\_policy\_arn](#input\_firewall\_policy\_arn) | ARN of existing firewall policy (if not creating new one) | `string` | `null` | no |
 | <a name="input_firewall_policy_config"></a> [firewall\_policy\_config](#input\_firewall\_policy\_config) | # Firewall Policy Configuration | <pre>object({<br/>    name        = optional(string)<br/>    description = optional(string)<br/>    encryption_configuration = optional(object({<br/>      type   = string<br/>      key_id = optional(string)<br/>    }))<br/>    stateless_default_actions          = optional(list(string), ["aws:forward_to_sfe"])<br/>    stateless_fragment_default_actions = optional(list(string), ["aws:forward_to_sfe"])<br/>    stateful_default_actions           = optional(list(string))<br/>    stateful_engine_options = optional(object({<br/>      rule_order              = optional(string, "DEFAULT_ACTION_ORDER")<br/>      stream_exception_policy = optional(string, "DROP")<br/>      flow_timeouts = optional(object({<br/>        tcp_idle_timeout_seconds = optional(number, 350)<br/>      }))<br/>    }))<br/>    policy_variables = optional(object({<br/>      rule_variables = optional(map(object({<br/>        definition = list(string)<br/>      })), {})<br/>    }), {})<br/>    stateless_rule_groups = optional(list(object({<br/>      resource_arn = string<br/>      priority     = number<br/>    })), [])<br/>    stateful_rule_groups = optional(list(object({<br/>      resource_arn           = string<br/>      priority               = number<br/>      deep_threat_inspection = optional(bool)<br/>      override = optional(object({<br/>        action = string<br/>      }))<br/>    })), [])<br/>    stateless_custom_actions = optional(list(object({<br/>      action_name = string<br/>      action_definition = object({<br/>        publish_metric_action = object({<br/>          dimensions = list(object({<br/>            value = string<br/>          }))<br/>        })<br/>      })<br/>    })), [])<br/>    tls_inspection_configuration_arn    = optional(string)<br/>    create_tls_inspection_configuration = optional(bool, false)<br/>  })</pre> | `{}` | no |
 | <a name="input_firewall_policy_resource_policy"></a> [firewall\_policy\_resource\_policy](#input\_firewall\_policy\_resource\_policy) | Resource policy configuration for the firewall policy | <pre>object({<br/>    statements = list(object({<br/>      actions = list(string)<br/>      effect  = string<br/>      principals = object({<br/>        aws = list(string)<br/>      })<br/>    }))<br/>  })</pre> | <pre>{<br/>  "statements": []<br/>}</pre> | no |
+| <a name="input_log_retention_days"></a> [log\_retention\_days](#input\_log\_retention\_days) | CloudWatch log retention period in days | `number` | `7` | no |
 | <a name="input_logging_config"></a> [logging\_config](#input\_logging\_config) | List of logging destinations to configure.<br/>Example:<br/>[<br/>  {<br/>    log\_type            = "FLOW"<br/>    log\_destination\_type = "S3"<br/>    log\_destination\_name = "firewall-logs-bucket"<br/>  },<br/>  {<br/>    log\_type            = "ALERT"<br/>    log\_destination\_type = "CloudWatchLogs"<br/>    log\_destination\_name = "firewall-alerts-loggroup"<br/>  }<br/>] | <pre>list(object({<br/>    log_type             = string<br/>    log_destination_type = string # S3 | CloudWatchLogs | KinesisDataFirehose<br/>    log_destination_name = string # bucket name or log group name<br/>  }))</pre> | `[]` | no |
 | <a name="input_name"></a> [name](#input\_name) | Name of the Network Firewall | `string` | n/a | yes |
 | <a name="input_rule_group_config"></a> [rule\_group\_config](#input\_rule\_group\_config) | Complete rule group configuration in one object | <pre>object({<br/>    description = optional(string)<br/>    capacity    = optional(number)<br/>    type        = optional(string)<br/>    encryption_configuration = optional(object({<br/>      type   = string<br/>      key_id = optional(string)<br/>    }))<br/>    rules = optional(string)<br/>    rule_variables = optional(object({<br/>      ip_sets = optional(list(object({<br/>        key        = string<br/>        definition = list(string)<br/>      })))<br/>      port_sets = optional(list(object({<br/>        key        = string<br/>        definition = list(string)<br/>      })))<br/>    }))<br/>    rules_source = optional(object({<br/>      rules_source_list = optional(list(object({<br/>        generated_rules_type = string<br/>        target_types         = list(string)<br/>        targets              = list(string)<br/>      })))<br/>      rules_string = optional(string)<br/>      stateful_rules = optional(list(object({<br/>        action = string<br/>        header = object({<br/>          destination      = string<br/>          destination_port = string<br/>          direction        = string<br/>          protocol         = string<br/>          source           = string<br/>          source_port      = string<br/>        })<br/>        rule_options = optional(list(object({<br/>          keyword  = string<br/>          settings = optional(list(string))<br/>        })))<br/>      })))<br/>      stateless = optional(list(object({<br/>        custom_actions = optional(list(object({<br/>          action_name = string<br/>          dimension   = string<br/>        })))<br/>        rules = list(object({<br/>          priority = number<br/>          actions  = list(string)<br/>          match = object({<br/>            destination = string<br/>            destination_port = object({<br/>              from = number<br/>              to   = number<br/>            })<br/>            source = string<br/>            source_port = object({<br/>              from = number<br/>              to   = number<br/>            })<br/>            protocols = optional(list(number))<br/>          })<br/>        }))<br/>      })))<br/>    }))<br/>    stateful_rule_options = optional(object({<br/>      rule_order = string<br/>    }))<br/>    reference_sets = optional(list(object({<br/>      key = string<br/>      arn = string<br/>    })))<br/>  })</pre> | `{}` | no |
 | <a name="input_rule_group_resource_policy"></a> [rule\_group\_resource\_policy](#input\_rule\_group\_resource\_policy) | IAM-style resource policy for Network Firewall Rule Group | <pre>object({<br/>    statements = list(object({<br/>      actions = list(string)<br/>      effect  = string<br/>      principals = object({<br/>        aws = list(string)<br/>      })<br/>    }))<br/>  })</pre> | <pre>{<br/>  "statements": []<br/>}</pre> | no |
-| <a name="input_stateful_rule_groups"></a> [stateful\_rule\_groups](#input\_stateful\_rule\_groups) | List of stateful rule group references | <pre>list(object({<br/>    resource_arn           = string<br/>    priority               = optional(number)<br/>    deep_threat_inspection = optional(bool, false)<br/>    override = optional(object({<br/>      action = string<br/>    }))<br/>  }))</pre> | `[]` | no |
-| <a name="input_stateless_custom_actions"></a> [stateless\_custom\_actions](#input\_stateless\_custom\_actions) | Custom actions for stateless rules | <pre>list(object({<br/>    action_name = string<br/>    action_definition = object({<br/>      publish_metric_action = object({<br/>        dimensions = list(object({<br/>          value = string<br/>        }))<br/>      })<br/>    })<br/>  }))</pre> | `[]` | no |
-| <a name="input_stateless_rule_groups"></a> [stateless\_rule\_groups](#input\_stateless\_rule\_groups) | List of stateless rule group references | <pre>list(object({<br/>    resource_arn = string<br/>    priority     = number<br/>  }))</pre> | `[]` | no |
 | <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs for firewall endpoints | `list(string)` | `[]` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | `{}` | no |
 | <a name="input_tls_inspection_configuration"></a> [tls\_inspection\_configuration](#input\_tls\_inspection\_configuration) | TLS inspection configuration | <pre>object({<br/>    name        = optional(string)<br/>    description = optional(string)<br/>    encryption_configuration = optional(object({<br/>      key_id = optional(string)<br/>      type   = optional(string, "AWS_OWNED_KMS_KEY")<br/>    }))<br/>    server_certificate_configurations = list(object({<br/>      certificate_authority_arn = optional(string)<br/>      check_certificate_revocation_status = optional(object({<br/>        revoked_status_action = optional(string, "REJECT")<br/>        unknown_status_action = optional(string, "PASS")<br/>      }))<br/>      server_certificates = optional(list(object({<br/>        resource_arn = string<br/>      })), [])<br/>      scopes = list(object({<br/>        protocols = optional(list(number), [6])<br/>        destinations = list(object({<br/>          address_definition = string<br/>        }))<br/>        destination_ports = optional(list(object({<br/>          from_port = number<br/>          to_port   = optional(number)<br/>        })), [])<br/>        sources = optional(list(object({<br/>          address_definition = string<br/>        })), [])<br/>        source_ports = optional(list(object({<br/>          from_port = number<br/>          to_port   = optional(number)<br/>        })), [])<br/>      }))<br/>    }))<br/>    timeouts = optional(object({<br/>      create = optional(string)<br/>      update = optional(string)<br/>      delete = optional(string)<br/>    }))<br/>  })</pre> | <pre>{<br/>  "server_certificate_configurations": []<br/>}</pre> | no |
-| <a name="input_tls_inspection_configuration_arn"></a> [tls\_inspection\_configuration\_arn](#input\_tls\_inspection\_configuration\_arn) | ARN of TLS inspection configuration | `string` | `null` | no |
 | <a name="input_vpc_endpoint_association"></a> [vpc\_endpoint\_association](#input\_vpc\_endpoint\_association) | Configuration for VPC Endpoint Association | <pre>object({<br/>    description = optional(string)<br/>    subnet_mappings = list(object({<br/>      subnet_id       = string<br/>      ip_address_type = optional(string) # IPV4 or DUALSTACK<br/>    }))<br/>  })</pre> | `null` | no |
 | <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID where the firewall will be deployed | `string` | `null` | no |
 
@@ -405,4 +402,4 @@ Network Firewall Endpoint
 | <a name="output_transit_gateway_id"></a> [transit\_gateway\_id](#output\_transit\_gateway\_id) | The Transit Gateway ID for transit gateway-attached firewall |
 | <a name="output_update_token"></a> [update\_token](#output\_update\_token) | Update token of the rule group |
 | <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The VPC ID where the firewall is deployed |
-<!-- END_TF_DOCS -->
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

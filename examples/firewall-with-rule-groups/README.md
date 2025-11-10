@@ -31,21 +31,6 @@ This example demonstrates how to create an AWS Network Firewall with custom stat
 - Allow TLS traffic to example.com
 - Block SSH traffic (port 22)
 
-### AWS Managed Rules
-- Common Rule Set for threat detection
-- Configured with ALERT override (instead of DROP)
-
-## Usage
-
-1. Update the variables in `example.auto.tfvars` as needed
-2. Initialize and apply the configuration:
-
-```bash
-terraform init
-terraform plan
-terraform apply
-```
-
 ## Configuration Details
 
 ### Engine Options
@@ -53,46 +38,52 @@ terraform apply
 - **Stream Exception Policy**: DROP for broken connections
 - **TCP Idle Timeout**: 300 seconds
 
-### Policy Variables
-- **HOME_NET**: Defined as RFC 1918 private networks
+<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+## Requirements
 
-### Protection Settings
-- All protection mechanisms are enabled for production-like security
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.11.0 |
+
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_network_firewall"></a> [network\_firewall](#module\_network\_firewall) | ../../ | n/a |
+| <a name="module_tags"></a> [tags](#module\_tags) | sourcefuse/arc-tags/aws | 1.2.3 |
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_subnets.public](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/subnets) | data source |
+| [aws_vpc.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/vpc) | data source |
 
 ## Inputs
 
-| Name | Description | Type | Default |
-|------|-------------|------|---------|
-| aws_region | AWS region for resources | string | us-east-1 |
-| firewall_name | Name of the Network Firewall | string | advanced-network-firewall |
-| delete_protection | Enable deletion protection | bool | false |
-| tags | Tags to apply to resources | map(string) | See variables.tf |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_delete_protection"></a> [delete\_protection](#input\_delete\_protection) | Enable deletion protection for the firewall | `bool` | `false` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | Name of the environment, i.e. dev, stage, prod | `string` | `"poc"` | no |
+| <a name="input_firewall_name"></a> [firewall\_name](#input\_firewall\_name) | Name of the Network Firewall | `string` | `"advanced-network-firewall"` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace of the project, i.e. arc | `string` | `"arc"` | no |
+| <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | `"us-east-1"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| firewall_arn | ARN of the Network Firewall |
-| firewall_name | Name of the Network Firewall |
-| firewall_policy_arn | ARN of the Firewall Policy |
-| firewall_endpoint_ids | Map of endpoint IDs by AZ |
-| stateless_rule_group_arn | ARN of custom stateless rule group |
-| stateful_rule_group_arn | ARN of custom stateful rule group |
-| vpc_id | VPC ID where firewall is deployed |
-
-## Suricata Rule Syntax
-
-The stateful rules use Suricata format:
-- `pass`: Allow the traffic
-- `drop`: Block the traffic
-- `http.host`: Match HTTP Host header
-- `tls.sni`: Match TLS Server Name Indication
-- `flow:to_server,established`: Match established connections to server
-
-## Clean Up
-
-```bash
-terraform destroy
-```
-
-**Note**: Rule groups must be deleted before the firewall policy that references them.
+| <a name="output_firewall_arn"></a> [firewall\_arn](#output\_firewall\_arn) | ARN of the Network Firewall |
+| <a name="output_firewall_endpoint_ids"></a> [firewall\_endpoint\_ids](#output\_firewall\_endpoint\_ids) | Map of firewall endpoint IDs by availability zone |
+| <a name="output_firewall_name"></a> [firewall\_name](#output\_firewall\_name) | Name of the Network Firewall |
+| <a name="output_firewall_policy_arn"></a> [firewall\_policy\_arn](#output\_firewall\_policy\_arn) | ARN of the Firewall Policy |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | VPC ID where the firewall is deployed |
+<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->

@@ -22,31 +22,6 @@ variable "name" {
   default     = "advanced-tls-firewall"
 }
 
-# Certificate domains
-variable "web_server_domain" {
-  description = "Primary domain for web server certificate"
-  type        = string
-  default     = "web.arc-poc.link"
-}
-
-variable "web_server_san_domains" {
-  description = "Subject Alternative Names for web server certificate"
-  type        = list(string)
-  default     = ["www.arc-poc.link", "app.arc-poc.link"]
-}
-
-variable "api_server_domain" {
-  description = "Domain for API server certificate"
-  type        = string
-  default     = "api.arc-poc.link"
-}
-
-variable "corporate_ca_domain" {
-  description = "Domain for corporate CA certificate"
-  type        = string
-  default     = "ca.corp.arc-poc.link"
-}
-
 # Traffic scoping
 variable "web_server_destinations" {
   description = "Destination IP ranges for web server traffic"
@@ -137,14 +112,4 @@ variable "enable_protection" {
   description = "Enable all protection settings"
   type        = bool
   default     = false
-}
-
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default = {
-    Environment = "production"
-    Project     = "advanced-tls-inspection"
-    Owner       = "security-team"
-  }
 }
