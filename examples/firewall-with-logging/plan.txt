@@ -1,0 +1,156 @@
+data.aws_subnets.public: Reading...
+data.aws_vpc.default: Reading...
+module.network_firewall.aws_cloudwatch_log_group.firewall_logs["my-firewall-alert-logs"]: Refreshing state... [id=/aws/network-firewall/my-firewall-alert-logs]
+module.network_firewall.aws_networkfirewall_firewall_policy.this[0]: Refreshing state... [id=arn:aws:network-firewall:us-east-1:884360309640:firewall-policy/demo-logging-firewall-policy]
+module.network_firewall.module.s3_firewall_logs["my-firewall-flow-logs"].module.bucket[0].aws_s3_bucket.this: Refreshing state... [id=my-firewall-flow-logs]
+data.aws_subnets.public: Read complete after 2s [id=us-east-1]
+data.aws_vpc.default: Read complete after 3s [id=vpc-0e6c09980580ecbf6]
+module.network_firewall.aws_networkfirewall_firewall.this: Refreshing state... [id=arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall]
+module.network_firewall.module.s3_firewall_logs["my-firewall-flow-logs"].module.bucket[0].aws_s3_bucket_public_access_block.this: Refreshing state... [id=my-firewall-flow-logs]
+module.network_firewall.module.s3_firewall_logs["my-firewall-flow-logs"].module.bucket[0].aws_s3_bucket_versioning.this: Refreshing state... [id=my-firewall-flow-logs]
+module.network_firewall.module.s3_firewall_logs["my-firewall-flow-logs"].module.bucket[0].aws_s3_bucket_server_side_encryption_configuration.this: Refreshing state... [id=my-firewall-flow-logs]
+module.network_firewall.module.s3_firewall_logs["my-firewall-flow-logs"].module.bucket[0].aws_s3_bucket_ownership_controls.this: Refreshing state... [id=my-firewall-flow-logs]
+module.network_firewall.module.s3_firewall_logs["my-firewall-flow-logs"].module.bucket[0].aws_s3_bucket_acl.this: Refreshing state... [id=my-firewall-flow-logs,private]
+module.network_firewall.aws_networkfirewall_logging_configuration.this[0]: Refreshing state... [id=arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall]
+
+Note: Objects have changed outside of Terraform
+
+Terraform detected the following changes made outside of Terraform since the
+last "terraform apply" which may have affected this plan:
+
+  # module.network_firewall.aws_networkfirewall_firewall.this has changed
+  ~ resource "aws_networkfirewall_firewall" "this" {
+        id                                  = "arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall"
+        name                                = "demo-logging-firewall"
+        tags                                = {
+            "Environment" = "poc"
+            "ManagedBy"   = "terraform"
+            "Module"      = "network-firewall"
+            "Project"     = "arc"
+            "RepoName"    = "terraform-aws-network-firewall"
+        }
+      ~ update_token                        = "03f2b583-61d5-4683-96be-a75d06a2419b" -> "cae79f7d-41a0-4495-af29-342ccc3193c1"
+        # (14 unchanged attributes hidden)
+
+        # (2 unchanged blocks hidden)
+    }
+
+
+Unless you have made equivalent changes to your configuration, or ignored the
+relevant attributes using ignore_changes, the following plan may include
+actions to undo or respond to these changes.
+
+─────────────────────────────────────────────────────────────────────────────
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+-/+ destroy and then create replacement
+
+Terraform will perform the following actions:
+
+  # module.network_firewall.aws_networkfirewall_firewall.this must be replaced
+-/+ resource "aws_networkfirewall_firewall" "this" {
+      ~ arn                                 = "arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall" -> (known after apply)
+      ~ firewall_policy_arn                 = "arn:aws:network-firewall:us-east-1:884360309640:firewall-policy/demo-logging-firewall-policy" -> (known after apply)
+      ~ firewall_status                     = [
+          - {
+              - sync_states                            = [
+                  - {
+                      - attachment        = [
+                          - {
+                              - endpoint_id = "vpce-00042b1ead7b2bb3e"
+                              - subnet_id   = "subnet-0c55ffb1f4a8bd7c2"
+                            },
+                        ]
+                      - availability_zone = "us-east-1b"
+                    },
+                  - {
+                      - attachment        = [
+                          - {
+                              - endpoint_id = "vpce-0521dec9c6c2c4e3e"
+                              - subnet_id   = "subnet-01efab943d2bbe156"
+                            },
+                        ]
+                      - availability_zone = "us-east-1a"
+                    },
+                ]
+              - transit_gateway_attachment_sync_states = []
+            },
+        ] -> (known after apply)
+      ~ id                                  = "arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall" -> (known after apply)
+      ~ name                                = "demo-logging-firewall" -> "demo-logging-firewall-00" # forces replacement
+        tags                                = {
+            "Environment" = "poc"
+            "ManagedBy"   = "terraform"
+            "Module"      = "network-firewall"
+            "Project"     = "arc"
+            "RepoName"    = "terraform-aws-network-firewall"
+        }
+      + transit_gateway_owner_account_id    = (known after apply)
+      ~ update_token                        = "cae79f7d-41a0-4495-af29-342ccc3193c1" -> (known after apply)
+        # (10 unchanged attributes hidden)
+
+      ~ availability_zone_mapping (known after apply)
+
+      - subnet_mapping {
+          - ip_address_type = "IPV4" -> null
+          - subnet_id       = "subnet-01efab943d2bbe156" -> null
+        }
+      - subnet_mapping {
+          - ip_address_type = "IPV4" -> null
+          - subnet_id       = "subnet-0c55ffb1f4a8bd7c2" -> null
+        }
+      + subnet_mapping {
+          + ip_address_type = (known after apply)
+          + subnet_id       = "subnet-01efab943d2bbe156"
+        }
+      + subnet_mapping {
+          + ip_address_type = (known after apply)
+          + subnet_id       = "subnet-0c55ffb1f4a8bd7c2"
+        }
+    }
+
+  # module.network_firewall.aws_networkfirewall_firewall_policy.this[0] must be replaced
+-/+ resource "aws_networkfirewall_firewall_policy" "this" {
+      ~ arn          = "arn:aws:network-firewall:us-east-1:884360309640:firewall-policy/demo-logging-firewall-policy" -> (known after apply)
+      ~ id           = "arn:aws:network-firewall:us-east-1:884360309640:firewall-policy/demo-logging-firewall-policy" -> (known after apply)
+      ~ name         = "demo-logging-firewall-policy" -> "demo-logging-firewall-00-policy" # forces replacement
+        tags         = {
+            "Environment" = "poc"
+            "ManagedBy"   = "terraform"
+            "Module"      = "network-firewall"
+            "Project"     = "arc"
+            "RepoName"    = "terraform-aws-network-firewall"
+        }
+      ~ update_token = "fef3d2c2-a63b-4ac6-bdee-7984c006dc3a" -> (known after apply)
+        # (3 unchanged attributes hidden)
+
+      ~ firewall_policy {
+          - stateful_default_actions           = [] -> null
+            # (3 unchanged attributes hidden)
+
+            # (1 unchanged block hidden)
+        }
+    }
+
+  # module.network_firewall.aws_networkfirewall_logging_configuration.this[0] must be replaced
+-/+ resource "aws_networkfirewall_logging_configuration" "this" {
+      ~ firewall_arn = "arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall" -> (known after apply) # forces replacement
+      ~ id           = "arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall" -> (known after apply)
+        # (1 unchanged attribute hidden)
+
+        # (1 unchanged block hidden)
+    }
+
+Plan: 3 to add, 0 to change, 3 to destroy.
+
+Changes to Outputs:
+  ~ firewall_arn             = "arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall" -> (known after apply)
+  ~ firewall_name            = "demo-logging-firewall" -> "demo-logging-firewall-00"
+  ~ firewall_policy_arn      = "arn:aws:network-firewall:us-east-1:884360309640:firewall-policy/demo-logging-firewall-policy" -> (known after apply)
+  ~ logging_configuration_id = "arn:aws:network-firewall:us-east-1:884360309640:firewall/demo-logging-firewall" -> (known after apply)
+
+─────────────────────────────────────────────────────────────────────────────
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

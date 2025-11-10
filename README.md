@@ -1,96 +1,373 @@
-# terraform-aws-module-template
+![Module Structure](./static/terraform-aws-arc-network-firewall.png)
 
-## Overview
+# [terraform-aws-arc-network-firewall](https://github.com/sourcefuse/terraform-aws-arc-network-firewall)
 
-SourceFuse AWS Reference Architecture (ARC) Terraform module for managing _________.
+<a href="https://github.com/sourcefuse/terraform-aws-arc-network-firewall/releases/latest"><img src="https://img.shields.io/github/release/sourcefuse/terraform-aws-arc-network-firewall.svg?style=for-the-badge" alt="Latest Release"/></a> <a href="https://github.com/sourcefuse/terraform-aws-arc-network-firewall/commits"><img src="https://img.shields.io/github/last-commit/sourcefuse/terraform-aws-arc-network-firewall.svg?style=for-the-badge" alt="Last Updated"/></a> ![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white) ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=sourcefuse_terraform-aws-arc-network-firewall&token=50e6ee25f84e3f8c4a858442d123b2942008e212)](https://sonarcloud.io/summary/new_code?id=sourcefuse_terraform-aws-arc-network-firewall)
+
+[![Known Vulnerabilities](https://github.com/sourcefuse/terraform-aws-arc-network-firewall/actions/workflows/snyk.yaml/badge.svg)](https://github.com/sourcefuse/terraform-aws-arc-network-firewall/actions/workflows/snyk.yaml)
+
+# AWS Network Firewall Terraform Module
+
+A comprehensive, production-ready Terraform module for deploying AWS Network Firewall with support for both VPC-attached and Transit Gateway-attached configurations.
+
+## Features
+
+- **Flexible Deployment**: Support for both VPC-attached and Transit Gateway-attached firewalls
+- **Comprehensive Rule Support**: Stateful and stateless rule groups with Suricata compatibility
+- **Advanced Logging**: CloudWatch Logs, S3, and Kinesis Data Firehose integration
+- **Security Best Practices**: Encryption, tagging, and protection settings
+- **High Availability**: Multi-AZ deployment support
+- **Policy Management**: Custom and AWS managed rule groups
+- **Conditional Resources**: Smart resource creation based on configuration
+- **Production Ready**: Comprehensive validation and error handling
 
 ## Usage
 
-To see a full example, check out the [main.tf](./example/main.tf) file in the example folder.  
+### Basic  Firewall
 
 ```hcl
-module "this" {
-  source = "git::https://github.com/sourcefuse/terraform-aws-refarch-<module_name>"
+module "network_firewall" {
+  source = "./modules/network-firewall"
+
+  name       = "my-network-firewall"
+  vpc_id     = "vpc-12345678"
+  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+
+  # Basic firewall policy
+  create_firewall_policy = true
+  
+  tags = {
+    Environment = "production"
+    Project     = "security"
+  }
 }
 ```
 
-<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
+### Advanced Configuration with Rule Groups
+
+```hcl
+module "network_firewall" {
+  source = "./modules/network-firewall"
+
+  name        = "advanced-firewall"
+  description = "Production firewall with custom rules"
+  
+  vpc_id     = "vpc-12345678"
+  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+
+  # Advanced policy configuration
+  create_firewall_policy = true
+  stateful_engine_options = {
+    rule_order              = "STRICT_ORDER"
+    stream_exception_policy = "DROP"
+  }
+
+  # Rule groups
+  stateful_rule_groups = [
+    {
+      resource_arn = aws_networkfirewall_rule_group.custom.arn
+      priority     = 100
+    }
+  ]
+
+  # Logging
+  enable_logging = true
+  logging_config = [
+    {
+      log_destination_type = "CloudWatchLogs"
+      log_type            = "ALERT"
+      log_destination = {
+        logGroup = "/aws/networkfirewall/alerts"
+      }
+    }
+  ]
+
+  # Protection settings
+  delete_protection                 = true
+  subnet_change_protection          = true
+  firewall_policy_change_protection = true
+
+  tags = {
+    Environment = "production"
+    Project     = "security"
+  }
+}
+```
+
+### Transit Gateway-Attached Firewall
+
+```hcl
+module "network_firewall" {
+  source = "./modules/network-firewall"
+
+  name               = "tgw-firewall"
+  transit_gateway_id = "tgw-12345678"
+  availability_zones = ["use1-az1", "use1-az2"]
+
+  create_firewall_policy = true
+  
+  tags = {
+    Environment = "production"
+    Project     = "security"
+  }
+}
+```
+
+### Firewall with TLS Inspection
+
+```hcl
+module "network_firewall" {
+  source = "./modules/network-firewall"
+
+  name       = "firewall-with-tls"
+  vpc_id     = "vpc-12345678"
+  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+
+  create_firewall_policy = true
+  
+  # TLS Inspection Configuration
+  create_tls_inspection_configuration = true
+  tls_inspection_configuration = {
+    name        = "tls-inspection-config"
+    description = "TLS inspection for inbound and outbound traffic"
+    
+    encryption_configuration = {
+      type   = "AWS_OWNED_KMS_KEY"
+      key_id = "AWS_OWNED_KMS_KEY"
+    }
+
+    server_certificate_configurations = [
+      {
+        # Inbound inspection
+        server_certificates = [
+          {
+            resource_arn = "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012"
+          }
+        ]
+        scopes = [
+          {
+            protocols = [6]
+            destinations = [
+              {
+                address_definition = "10.0.0.0/8"
+              }
+            ]
+            destination_ports = [
+              {
+                from_port = 443
+                to_port   = 443
+              }
+            ]
+            sources = [
+              {
+                address_definition = "0.0.0.0/0"
+              }
+            ]
+            source_ports = [
+              {
+                from_port = 0
+                to_port   = 65535
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+
+  tags = {
+    Environment = "production"
+    Project     = "security"
+  }
+}
+```
+
+### Firewall with Resource Policy
+
+```hcl
+module "network_firewall" {
+  source = "./modules/network-firewall"
+
+  name       = "firewall-with-policy"
+  vpc_id     = "vpc-12345678"
+  subnet_ids = ["subnet-12345678", "subnet-87654321"]
+
+  create_firewall_policy = true
+  
+  # Resource policy for cross-account access
+  create_firewall_policy_resource_policy = true
+  firewall_policy_resource_policy = {
+    statements = [
+      {
+        actions = [
+          "network-firewall:ListFirewallPolicies",
+          "network-firewall:CreateFirewall",
+          "network-firewall:UpdateFirewall",
+          "network-firewall:AssociateFirewallPolicy"
+        ]
+        effect = "Allow"
+        principals = {
+          aws = ["arn:aws:iam::123456789012:root"]
+        }
+      }
+    ]
+  }
+
+  tags = {
+    Environment = "production"
+    Project     = "security"
+  }
+}
+```
+
+## Examples
+
+The `examples/` directory contains complete, working examples:
+
+- **[basic-firewall](./examples/basic-firewall/)**: Simple VPC-attached firewall with minimal configuration
+- **[firewall-with-rule-groups](./examples/firewall-with-rule-groups/)**: Advanced firewall with custom stateful/stateless rules
+- **[firewall-with-logging](./examples/firewall-with-logging/)**: Comprehensive logging configuration
+- **[firewall-with-resource-policy](./examples/firewall-with-resource-policy/)**: Firewall with cross-account resource policy
+- **[firewall-with-rule-group-policies](./examples/firewall-with-rule-group-policies/)**: Firewall with resource policies for rule groups
+- **[firewall-with-tls-inspection](./examples/firewall-with-tls-inspection/)**: Basic TLS inspection configuration
+- **[advanced-tls-inspection](./examples/advanced-tls-inspection/)**: Advanced TLS inspection with multiple certificates and KMS
+- **[transit-gateway-firewall](./examples/transit-gateway-firewall/)**: Transit Gateway-attached firewall
+
+## Architecture Patterns
+
+### VPC-Attached Firewall
+```
+Internet Gateway
+       |
+   Route Table
+       |
+   Public Subnet
+       |
+Network Firewall Endpoint
+       |
+   Private Subnet
+       |
+   Application Resources
+```
+
+### Transit Gateway-Attached Firewall
+```
+    VPC A          VPC B
+      |              |
+      +------+-------+
+             |
+    Transit Gateway
+             |
+   Network Firewall
+             |
+      Internet/Other VPCs
+```
+
+## Security Best Practices
+
+- **Encryption**: Use customer-managed KMS keys for encryption at rest
+- **Logging**: Enable comprehensive logging for security monitoring
+- **Protection Settings**: Enable all protection mechanisms in production
+- **Rule Ordering**: Use STRICT_ORDER for deterministic rule evaluation
+- **Least Privilege**: Apply minimal required permissions for IAM roles
+- **Tagging**: Implement consistent tagging for resource management
+
+
+<!-- BEGIN_TF_DOCS -->
 ## Requirements
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.3, < 2.0.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | ~> 4.0 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.0, < 7.0 |
 
 ## Providers
 
-No providers.
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.16.0 |
 
 ## Modules
 
-No modules.
+| Name | Source | Version |
+|------|--------|---------|
+| <a name="module_s3_firewall_logs"></a> [s3\_firewall\_logs](#module\_s3\_firewall\_logs) | sourcefuse/arc-s3/aws | 0.0.5 |
 
 ## Resources
 
-No resources.
+| Name | Type |
+|------|------|
+| [aws_cloudwatch_log_group.firewall_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_networkfirewall_firewall.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_firewall) | resource |
+| [aws_networkfirewall_firewall_policy.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_firewall_policy) | resource |
+| [aws_networkfirewall_logging_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_logging_configuration) | resource |
+| [aws_networkfirewall_resource_policy.example](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_resource_policy) | resource |
+| [aws_networkfirewall_resource_policy.firewall_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_resource_policy) | resource |
+| [aws_networkfirewall_rule_group.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_rule_group) | resource |
+| [aws_networkfirewall_tls_inspection_configuration.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_tls_inspection_configuration) | resource |
+| [aws_networkfirewall_vpc_endpoint_association.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/networkfirewall_vpc_endpoint_association) | resource |
 
 ## Inputs
 
-No inputs.
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_availability_zones"></a> [availability\_zones](#input\_availability\_zones) | List of availability zone IDs for transit gateway-attached firewall | `list(string)` | `[]` | no |
+| <a name="input_create_firewall"></a> [create\_firewall](#input\_create\_firewall) | Controls whether the Network Firewall should be created | `bool` | `true` | no |
+| <a name="input_create_firewall_policy"></a> [create\_firewall\_policy](#input\_create\_firewall\_policy) | Whether to create a firewall policy | `bool` | `false` | no |
+| <a name="input_create_firewall_policy_resource_policy"></a> [create\_firewall\_policy\_resource\_policy](#input\_create\_firewall\_policy\_resource\_policy) | Whether to create a resource policy for the firewall policy | `bool` | `false` | no |
+| <a name="input_create_rule_group"></a> [create\_rule\_group](#input\_create\_rule\_group) | Controls whether the Network Firewall Rule Group should be created | `bool` | `false` | no |
+| <a name="input_create_rule_group_resource_policy"></a> [create\_rule\_group\_resource\_policy](#input\_create\_rule\_group\_resource\_policy) | Whether to attach a resource policy to the Rule Group | `bool` | `false` | no |
+| <a name="input_create_tls_inspection_configuration"></a> [create\_tls\_inspection\_configuration](#input\_create\_tls\_inspection\_configuration) | Whether to create a TLS inspection configuration | `bool` | `false` | no |
+| <a name="input_create_vpc_endpoint_association"></a> [create\_vpc\_endpoint\_association](#input\_create\_vpc\_endpoint\_association) | Whether to create the Network Firewall VPC Endpoint Association | `bool` | `false` | no |
+| <a name="input_description"></a> [description](#input\_description) | Description of the Network Firewall | `string` | `null` | no |
+| <a name="input_enable_logging"></a> [enable\_logging](#input\_enable\_logging) | Logging Configuration | `bool` | `true` | no |
+| <a name="input_firewall_config"></a> [firewall\_config](#input\_firewall\_config) | Combined firewall settings | <pre>object({<br/>    transit_gateway_id                  = optional(string)<br/>    delete_protection                   = optional(bool, false)<br/>    subnet_change_protection            = optional(bool, false)<br/>    firewall_policy_change_protection   = optional(bool, false)<br/>    availability_zone_change_protection = optional(bool, false)<br/>    enabled_analysis_types              = optional(list(string), [])<br/>    encryption_configuration = optional(object({<br/>      type   = string<br/>      key_id = optional(string)<br/>    }))<br/>    timeouts = optional(object({<br/>      create = optional(string)<br/>      update = optional(string)<br/>      delete = optional(string)<br/>    }))<br/>  })</pre> | `{}` | no |
+| <a name="input_firewall_policy_arn"></a> [firewall\_policy\_arn](#input\_firewall\_policy\_arn) | ARN of existing firewall policy (if not creating new one) | `string` | `null` | no |
+| <a name="input_firewall_policy_config"></a> [firewall\_policy\_config](#input\_firewall\_policy\_config) | # Firewall Policy Configuration | <pre>object({<br/>    name        = optional(string)<br/>    description = optional(string)<br/>    encryption_configuration = optional(object({<br/>      type   = string<br/>      key_id = optional(string)<br/>    }))<br/>    stateless_default_actions          = optional(list(string), ["aws:forward_to_sfe"])<br/>    stateless_fragment_default_actions = optional(list(string), ["aws:forward_to_sfe"])<br/>    stateful_default_actions           = optional(list(string))<br/>    stateful_engine_options = optional(object({<br/>      rule_order              = optional(string, "DEFAULT_ACTION_ORDER")<br/>      stream_exception_policy = optional(string, "DROP")<br/>      flow_timeouts = optional(object({<br/>        tcp_idle_timeout_seconds = optional(number, 350)<br/>      }))<br/>    }))<br/>    policy_variables = optional(object({<br/>      rule_variables = optional(map(object({<br/>        definition = list(string)<br/>      })), {})<br/>    }), {})<br/>    stateless_rule_groups = optional(list(object({<br/>      resource_arn = string<br/>      priority     = number<br/>    })), [])<br/>    stateful_rule_groups = optional(list(object({<br/>      resource_arn           = string<br/>      priority               = number<br/>      deep_threat_inspection = optional(bool)<br/>      override = optional(object({<br/>        action = string<br/>      }))<br/>    })), [])<br/>    stateless_custom_actions = optional(list(object({<br/>      action_name = string<br/>      action_definition = object({<br/>        publish_metric_action = object({<br/>          dimensions = list(object({<br/>            value = string<br/>          }))<br/>        })<br/>      })<br/>    })), [])<br/>    tls_inspection_configuration_arn    = optional(string)<br/>    create_tls_inspection_configuration = optional(bool, false)<br/>  })</pre> | `{}` | no |
+| <a name="input_firewall_policy_resource_policy"></a> [firewall\_policy\_resource\_policy](#input\_firewall\_policy\_resource\_policy) | Resource policy configuration for the firewall policy | <pre>object({<br/>    statements = list(object({<br/>      actions = list(string)<br/>      effect  = string<br/>      principals = object({<br/>        aws = list(string)<br/>      })<br/>    }))<br/>  })</pre> | <pre>{<br/>  "statements": []<br/>}</pre> | no |
+| <a name="input_logging_config"></a> [logging\_config](#input\_logging\_config) | List of logging destinations to configure.<br/>Example:<br/>[<br/>  {<br/>    log\_type            = "FLOW"<br/>    log\_destination\_type = "S3"<br/>    log\_destination\_name = "firewall-logs-bucket"<br/>  },<br/>  {<br/>    log\_type            = "ALERT"<br/>    log\_destination\_type = "CloudWatchLogs"<br/>    log\_destination\_name = "firewall-alerts-loggroup"<br/>  }<br/>] | <pre>list(object({<br/>    log_type             = string<br/>    log_destination_type = string # S3 | CloudWatchLogs | KinesisDataFirehose<br/>    log_destination_name = string # bucket name or log group name<br/>  }))</pre> | `[]` | no |
+| <a name="input_name"></a> [name](#input\_name) | Name of the Network Firewall | `string` | n/a | yes |
+| <a name="input_rule_group_config"></a> [rule\_group\_config](#input\_rule\_group\_config) | Complete rule group configuration in one object | <pre>object({<br/>    description = optional(string)<br/>    capacity    = optional(number)<br/>    type        = optional(string)<br/>    encryption_configuration = optional(object({<br/>      type   = string<br/>      key_id = optional(string)<br/>    }))<br/>    rules = optional(string)<br/>    rule_variables = optional(object({<br/>      ip_sets = optional(list(object({<br/>        key        = string<br/>        definition = list(string)<br/>      })))<br/>      port_sets = optional(list(object({<br/>        key        = string<br/>        definition = list(string)<br/>      })))<br/>    }))<br/>    rules_source = optional(object({<br/>      rules_source_list = optional(list(object({<br/>        generated_rules_type = string<br/>        target_types         = list(string)<br/>        targets              = list(string)<br/>      })))<br/>      rules_string = optional(string)<br/>      stateful_rules = optional(list(object({<br/>        action = string<br/>        header = object({<br/>          destination      = string<br/>          destination_port = string<br/>          direction        = string<br/>          protocol         = string<br/>          source           = string<br/>          source_port      = string<br/>        })<br/>        rule_options = optional(list(object({<br/>          keyword  = string<br/>          settings = optional(list(string))<br/>        })))<br/>      })))<br/>      stateless = optional(list(object({<br/>        custom_actions = optional(list(object({<br/>          action_name = string<br/>          dimension   = string<br/>        })))<br/>        rules = list(object({<br/>          priority = number<br/>          actions  = list(string)<br/>          match = object({<br/>            destination = string<br/>            destination_port = object({<br/>              from = number<br/>              to   = number<br/>            })<br/>            source = string<br/>            source_port = object({<br/>              from = number<br/>              to   = number<br/>            })<br/>            protocols = optional(list(number))<br/>          })<br/>        }))<br/>      })))<br/>    }))<br/>    stateful_rule_options = optional(object({<br/>      rule_order = string<br/>    }))<br/>    reference_sets = optional(list(object({<br/>      key = string<br/>      arn = string<br/>    })))<br/>  })</pre> | `{}` | no |
+| <a name="input_rule_group_resource_policy"></a> [rule\_group\_resource\_policy](#input\_rule\_group\_resource\_policy) | IAM-style resource policy for Network Firewall Rule Group | <pre>object({<br/>    statements = list(object({<br/>      actions = list(string)<br/>      effect  = string<br/>      principals = object({<br/>        aws = list(string)<br/>      })<br/>    }))<br/>  })</pre> | <pre>{<br/>  "statements": []<br/>}</pre> | no |
+| <a name="input_stateful_rule_groups"></a> [stateful\_rule\_groups](#input\_stateful\_rule\_groups) | List of stateful rule group references | <pre>list(object({<br/>    resource_arn           = string<br/>    priority               = optional(number)<br/>    deep_threat_inspection = optional(bool, false)<br/>    override = optional(object({<br/>      action = string<br/>    }))<br/>  }))</pre> | `[]` | no |
+| <a name="input_stateless_custom_actions"></a> [stateless\_custom\_actions](#input\_stateless\_custom\_actions) | Custom actions for stateless rules | <pre>list(object({<br/>    action_name = string<br/>    action_definition = object({<br/>      publish_metric_action = object({<br/>        dimensions = list(object({<br/>          value = string<br/>        }))<br/>      })<br/>    })<br/>  }))</pre> | `[]` | no |
+| <a name="input_stateless_rule_groups"></a> [stateless\_rule\_groups](#input\_stateless\_rule\_groups) | List of stateless rule group references | <pre>list(object({<br/>    resource_arn = string<br/>    priority     = number<br/>  }))</pre> | `[]` | no |
+| <a name="input_subnet_ids"></a> [subnet\_ids](#input\_subnet\_ids) | List of subnet IDs for firewall endpoints | `list(string)` | `[]` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | `{}` | no |
+| <a name="input_tls_inspection_configuration"></a> [tls\_inspection\_configuration](#input\_tls\_inspection\_configuration) | TLS inspection configuration | <pre>object({<br/>    name        = optional(string)<br/>    description = optional(string)<br/>    encryption_configuration = optional(object({<br/>      key_id = optional(string)<br/>      type   = optional(string, "AWS_OWNED_KMS_KEY")<br/>    }))<br/>    server_certificate_configurations = list(object({<br/>      certificate_authority_arn = optional(string)<br/>      check_certificate_revocation_status = optional(object({<br/>        revoked_status_action = optional(string, "REJECT")<br/>        unknown_status_action = optional(string, "PASS")<br/>      }))<br/>      server_certificates = optional(list(object({<br/>        resource_arn = string<br/>      })), [])<br/>      scopes = list(object({<br/>        protocols = optional(list(number), [6])<br/>        destinations = list(object({<br/>          address_definition = string<br/>        }))<br/>        destination_ports = optional(list(object({<br/>          from_port = number<br/>          to_port   = optional(number)<br/>        })), [])<br/>        sources = optional(list(object({<br/>          address_definition = string<br/>        })), [])<br/>        source_ports = optional(list(object({<br/>          from_port = number<br/>          to_port   = optional(number)<br/>        })), [])<br/>      }))<br/>    }))<br/>    timeouts = optional(object({<br/>      create = optional(string)<br/>      update = optional(string)<br/>      delete = optional(string)<br/>    }))<br/>  })</pre> | <pre>{<br/>  "server_certificate_configurations": []<br/>}</pre> | no |
+| <a name="input_tls_inspection_configuration_arn"></a> [tls\_inspection\_configuration\_arn](#input\_tls\_inspection\_configuration\_arn) | ARN of TLS inspection configuration | `string` | `null` | no |
+| <a name="input_vpc_endpoint_association"></a> [vpc\_endpoint\_association](#input\_vpc\_endpoint\_association) | Configuration for VPC Endpoint Association | <pre>object({<br/>    description = optional(string)<br/>    subnet_mappings = list(object({<br/>      subnet_id       = string<br/>      ip_address_type = optional(string) # IPV4 or DUALSTACK<br/>    }))<br/>  })</pre> | `null` | no |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID where the firewall will be deployed | `string` | `null` | no |
 
 ## Outputs
 
-No outputs.
-<!-- END OF PRE-COMMIT-TERRAFORM DOCS HOOK -->
-
-## Versioning  
-This project uses a `.version` file at the root of the repo which the pipeline reads from and does a git tag.  
-
-When you intend to commit to `main`, you will need to increment this version. Once the project is merged,
-the pipeline will kick off and tag the latest git commit.  
-
-## Development
-
-### Prerequisites
-
-- [terraform](https://learn.hashicorp.com/terraform/getting-started/install#installing-terraform)
-- [terraform-docs](https://github.com/segmentio/terraform-docs)
-- [pre-commit](https://pre-commit.com/#install)
-- [golang](https://golang.org/doc/install#install)
-- [golint](https://github.com/golang/lint#installation)
-
-### Configurations
-
-- Configure pre-commit hooks
-  ```sh
-  pre-commit install
-  ```
-
-### Versioning
-
-while Contributing or doing git commit please specify the breaking change in your commit message whether its major,minor or patch
-
-For Example
-
-```sh
-git commit -m "your commit message #major"
-```
-By specifying this , it will bump the version and if you don't specify this in your commit message then by default it will consider patch and will bump that accordingly
-
-### Tests
-- Tests are available in `test` directory
-- Configure the dependencies
-  ```sh
-  cd test/
-  go mod init github.com/sourcefuse/terraform-aws-refarch-<module_name>
-  go get github.com/gruntwork-io/terratest/modules/terraform
-  ```
-- Now execute the test  
-  ```sh
-  go test -timeout  30m
-  ```
-
-## Authors
-
-This project is authored by:
-- SourceFuse ARC Team
+| Name | Description |
+|------|-------------|
+| <a name="output_arn"></a> [arn](#output\_arn) | ARN of the rule group |
+| <a name="output_availability_zones"></a> [availability\_zones](#output\_availability\_zones) | Availability zones where firewall endpoints are created |
+| <a name="output_firewall_arn"></a> [firewall\_arn](#output\_firewall\_arn) | The firewall ARN |
+| <a name="output_firewall_endpoint_ids"></a> [firewall\_endpoint\_ids](#output\_firewall\_endpoint\_ids) | Map of endpoint IDs per AZ |
+| <a name="output_firewall_id"></a> [firewall\_id](#output\_firewall\_id) | The firewall ID |
+| <a name="output_firewall_name"></a> [firewall\_name](#output\_firewall\_name) | Firewall name |
+| <a name="output_firewall_policy_arn"></a> [firewall\_policy\_arn](#output\_firewall\_policy\_arn) | The Amazon Resource Name (ARN) that identifies the firewall policy |
+| <a name="output_firewall_policy_id"></a> [firewall\_policy\_id](#output\_firewall\_policy\_id) | The Amazon Resource Name (ARN) that identifies the firewall policy |
+| <a name="output_firewall_policy_name"></a> [firewall\_policy\_name](#output\_firewall\_policy\_name) | The name of the firewall policy |
+| <a name="output_firewall_policy_resource_policy_id"></a> [firewall\_policy\_resource\_policy\_id](#output\_firewall\_policy\_resource\_policy\_id) | ID of the firewall policy resource policy |
+| <a name="output_firewall_policy_update_token"></a> [firewall\_policy\_update\_token](#output\_firewall\_policy\_update\_token) | A string token used when updating the firewall policy |
+| <a name="output_firewall_status"></a> [firewall\_status](#output\_firewall\_status) | Firewall status |
+| <a name="output_id"></a> [id](#output\_id) | ID of the rule group |
+| <a name="output_logging_configuration_id"></a> [logging\_configuration\_id](#output\_logging\_configuration\_id) | The Amazon Resource Name (ARN) of the associated firewall for logging |
+| <a name="output_resource_policy_ids"></a> [resource\_policy\_ids](#output\_resource\_policy\_ids) | List of resource policy IDs |
+| <a name="output_subnet_ids"></a> [subnet\_ids](#output\_subnet\_ids) | List of subnet IDs where firewall endpoints are created |
+| <a name="output_tags_all"></a> [tags\_all](#output\_tags\_all) | All tags for the firewall |
+| <a name="output_tls_inspection_configuration_arn"></a> [tls\_inspection\_configuration\_arn](#output\_tls\_inspection\_configuration\_arn) | ARN of the TLS inspection configuration |
+| <a name="output_tls_inspection_configuration_certificate_authority"></a> [tls\_inspection\_configuration\_certificate\_authority](#output\_tls\_inspection\_configuration\_certificate\_authority) | Certificate authority information |
+| <a name="output_tls_inspection_configuration_certificates"></a> [tls\_inspection\_configuration\_certificates](#output\_tls\_inspection\_configuration\_certificates) | Certificates information |
+| <a name="output_tls_inspection_configuration_id"></a> [tls\_inspection\_configuration\_id](#output\_tls\_inspection\_configuration\_id) | ID of the TLS inspection configuration |
+| <a name="output_tls_inspection_configuration_update_token"></a> [tls\_inspection\_configuration\_update\_token](#output\_tls\_inspection\_configuration\_update\_token) | Update token of the TLS inspection configuration |
+| <a name="output_transit_gateway_id"></a> [transit\_gateway\_id](#output\_transit\_gateway\_id) | The Transit Gateway ID for transit gateway-attached firewall |
+| <a name="output_update_token"></a> [update\_token](#output\_update\_token) | Update token of the rule group |
+| <a name="output_vpc_id"></a> [vpc\_id](#output\_vpc\_id) | The VPC ID where the firewall is deployed |
+<!-- END_TF_DOCS -->
