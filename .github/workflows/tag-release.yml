@@ -5,6 +5,8 @@ on:        # yamllint disable-line rule:truthy
     branches:
       - main
       - feature/terraform-networkfirewall-module
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
