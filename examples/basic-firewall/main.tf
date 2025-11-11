@@ -27,9 +27,8 @@ module "network_firewall" {
   subnet_ids = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
 
   # Basic firewall policy using new single-config object
-  create_firewall_policy = true
-
   firewall_policy_config = {
+    create      = true
     name        = "${var.firewall_name}-policy"
     description = "Basic firewall policy"
 

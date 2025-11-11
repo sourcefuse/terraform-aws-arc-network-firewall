@@ -4,7 +4,7 @@ locals {
   is_tgw_attached = try(var.firewall_config.transit_gateway_id, null) != null && length(var.availability_zones) > 0
 
   # Firewall policy ARN to use
-  firewall_policy_arn = var.create_firewall_policy ? aws_networkfirewall_firewall_policy.this[0].arn : var.firewall_policy_arn
+  firewall_policy_arn = try(var.firewall_policy_config.create, false) ? aws_networkfirewall_firewall_policy.this[0].arn : try(var.firewall_policy_config.arn, null)
 
   # Subnet mappings for VPC-attached firewall
   subnet_mappings = local.is_vpc_attached ? [

@@ -62,7 +62,6 @@ This example demonstrates how to deploy an AWS Network Firewall attached to a Tr
 | <a name="input_firewall_name"></a> [firewall\_name](#input\_firewall\_name) | Name of the Network Firewall | `string` | `"tgw-network-firewall"` | no |
 | <a name="input_namespace"></a> [namespace](#input\_namespace) | Namespace of the project, i.e. arc | `string` | `"arc"` | no |
 | <a name="input_region"></a> [region](#input\_region) | AWS region | `string` | `"us-east-1"` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | <pre>{<br/>  "Project": "network-firewall-tgw"<br/>}</pre> | no |
 
 ## Outputs
 

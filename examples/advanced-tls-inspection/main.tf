@@ -18,19 +18,16 @@ module "tags" {
 module "network_firewall" {
   source = "../../"
 
-  name                   = var.name
-  vpc_id                 = data.aws_vpc.default.id
-  subnet_ids             = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
-  create_firewall        = true
-  create_firewall_policy = true
+  name            = var.name
+  vpc_id          = data.aws_vpc.default.id
+  subnet_ids      = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
+  create_firewall = true
 
   # Advanced stateful engine options
-
   firewall_policy_config = {
+    create      = true
     name        = "${var.name}-firewall-policy"
     description = "Advanced policy with stateful and stateless rules"
-
-
 
     stateful_engine_options = {
       rule_order              = "STRICT_ORDER"
@@ -42,8 +39,8 @@ module "network_firewall" {
   }
 
   # TLS Inspection Configuration with customer KMS
-  create_tls_inspection_configuration = true
   tls_inspection_configuration = {
+    create      = true
     name        = "${var.name}-advanced-tls-inspection"
     description = "Advanced TLS inspection with multiple certificates and custom KMS encryption"
 

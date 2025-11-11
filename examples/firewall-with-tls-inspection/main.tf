@@ -17,15 +17,19 @@ module "tags" {
 module "network_firewall" {
   source = "../../"
 
-  name                   = var.name
-  vpc_id                 = data.aws_vpc.default.id
-  subnet_ids             = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
-  create_firewall        = false
-  create_firewall_policy = false
+  name       = var.name
+  vpc_id     = data.aws_vpc.default.id
+  subnet_ids = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
+
+  create_firewall = false
+
+  firewall_policy_config = {
+    create = false
+  }
 
   # TLS Inspection Configuration
-  create_tls_inspection_configuration = true
   tls_inspection_configuration = {
+    create      = true
     name        = "${var.name}-tls-inspection"
     description = "TLS inspection for inbound and outbound traffic"
 

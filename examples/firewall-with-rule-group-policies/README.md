@@ -9,15 +9,6 @@ This example demonstrates how to deploy an AWS Network Firewall with resource po
 - Resource policies for both firewall policy and rule groups
 - Cross-account access control for rule group management
 
-## Architecture
-
-```
-Custom Rule Group (with resource policy)
-         ↓
-Network Firewall Policy (with resource policy)
-         ↓
-Network Firewall
-```
 ## Resource Policies
 
 ### Firewall Policy Resource Policy

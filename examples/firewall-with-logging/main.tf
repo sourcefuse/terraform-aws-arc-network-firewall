@@ -32,30 +32,32 @@ module "network_firewall" {
   subnet_ids = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
 
   # Firewall Policy Configuration
-  create_firewall_policy = true
   firewall_policy_config = {
+    create                             = true
     name                               = "${var.firewall_name}-policy"
     stateless_default_actions          = ["aws:forward_to_sfe"]
     stateless_fragment_default_actions = ["aws:forward_to_sfe"]
   }
 
   # Enable Logging
-  enable_logging = true
-  logging_config = [
-    {
-      log_type             = "FLOW"
-      log_destination_type = "S3"
-      log_destination_name = "my-firewall-flow-logs"
-    },
-    {
-      log_type             = "ALERT"
-      log_destination_type = "CloudWatchLogs"
-      log_destination_name = "my-firewall-alert-logs"
-    }
-  ]
+  logging_config = {
+    enable = true
+    destinations = [
+      {
+        log_type             = "FLOW"
+        log_destination_type = "S3"
+        log_destination_name = "my-firewall-flow-logs"
+      },
+      {
+        log_type             = "ALERT"
+        log_destination_type = "CloudWatchLogs"
+        log_destination_name = "my-firewall-alert-logs"
+      }
+    ]
+  }
 
-  create_vpc_endpoint_association = true
   vpc_endpoint_association = {
+    create      = true
     description = "Network Firewall endpoint for public subnets"
     subnet_mappings = [
       {

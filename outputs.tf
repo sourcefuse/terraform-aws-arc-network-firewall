@@ -30,7 +30,7 @@ output "firewall_endpoint_ids" {
 # Firewall Policy Outputs
 output "firewall_policy_id" {
   description = "The Amazon Resource Name (ARN) that identifies the firewall policy"
-  value       = var.create_firewall_policy ? aws_networkfirewall_firewall_policy.this[0].id : null
+  value       = try(var.firewall_policy_config.create, false) ? aws_networkfirewall_firewall_policy.this[0].id : null
 }
 
 output "firewall_policy_arn" {
@@ -40,18 +40,18 @@ output "firewall_policy_arn" {
 
 output "firewall_policy_name" {
   description = "The name of the firewall policy"
-  value       = var.create_firewall_policy ? aws_networkfirewall_firewall_policy.this[0].name : null
+  value       = try(var.firewall_policy_config.create, false) ? aws_networkfirewall_firewall_policy.this[0].name : null
 }
 
 output "firewall_policy_update_token" {
   description = "A string token used when updating the firewall policy"
-  value       = var.create_firewall_policy ? aws_networkfirewall_firewall_policy.this[0].update_token : null
+  value       = try(var.firewall_policy_config.create, false) ? aws_networkfirewall_firewall_policy.this[0].update_token : null
 }
 
 # Logging Configuration Outputs
 output "logging_configuration_id" {
   description = "The Amazon Resource Name (ARN) of the associated firewall for logging"
-  value       = var.enable_logging && length(var.logging_config) > 0 ? aws_networkfirewall_logging_configuration.this[0].id : null
+  value       = try(var.logging_config.enable, true) && length(try(var.logging_config.destinations, [])) > 0 ? aws_networkfirewall_logging_configuration.this[0].id : null
 }
 
 # Configuration Outputs
@@ -94,32 +94,32 @@ output "resource_policy_ids" {
 
 output "firewall_policy_resource_policy_id" {
   description = "ID of the firewall policy resource policy"
-  value       = var.create_firewall_policy && var.create_firewall_policy_resource_policy ? aws_networkfirewall_resource_policy.firewall_policy[0].id : null
+  value       = try(var.firewall_policy_config.create, false) && var.create_firewall_policy_resource_policy ? aws_networkfirewall_resource_policy.firewall_policy[0].id : null
 }
 
 output "tls_inspection_configuration_arn" {
   description = "ARN of the TLS inspection configuration"
-  value       = var.create_tls_inspection_configuration ? aws_networkfirewall_tls_inspection_configuration.this[0].arn : null
+  value       = try(var.tls_inspection_configuration.create, false) ? aws_networkfirewall_tls_inspection_configuration.this[0].arn : null
 }
 
 output "tls_inspection_configuration_id" {
   description = "ID of the TLS inspection configuration"
-  value       = var.create_tls_inspection_configuration ? aws_networkfirewall_tls_inspection_configuration.this[0].tls_inspection_configuration_id : null
+  value       = try(var.tls_inspection_configuration.create, false) ? aws_networkfirewall_tls_inspection_configuration.this[0].tls_inspection_configuration_id : null
 }
 
 output "tls_inspection_configuration_update_token" {
   description = "Update token of the TLS inspection configuration"
-  value       = var.create_tls_inspection_configuration ? aws_networkfirewall_tls_inspection_configuration.this[0].update_token : null
+  value       = try(var.tls_inspection_configuration.create, false) ? aws_networkfirewall_tls_inspection_configuration.this[0].update_token : null
 }
 
 output "tls_inspection_configuration_certificate_authority" {
   description = "Certificate authority information"
-  value       = var.create_tls_inspection_configuration ? aws_networkfirewall_tls_inspection_configuration.this[0].certificate_authority : null
+  value       = try(var.tls_inspection_configuration.create, false) ? aws_networkfirewall_tls_inspection_configuration.this[0].certificate_authority : null
 }
 
 output "tls_inspection_configuration_certificates" {
   description = "Certificates information"
-  value       = var.create_tls_inspection_configuration ? aws_networkfirewall_tls_inspection_configuration.this[0].certificates : null
+  value       = try(var.tls_inspection_configuration.create, false) ? aws_networkfirewall_tls_inspection_configuration.this[0].certificates : null
 }
 
 # Rule Group Configuration Outputs

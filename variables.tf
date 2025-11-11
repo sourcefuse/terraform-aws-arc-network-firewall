@@ -34,6 +34,7 @@ variable "availability_zones" {
   default     = []
 }
 
+## Firewall Configurations
 variable "firewall_config" {
   description = "Combined firewall settings"
   type = object({
@@ -59,6 +60,8 @@ variable "firewall_config" {
 ## Firewall Policy Configuration
 variable "firewall_policy_config" {
   type = object({
+    create      = optional(bool, false)
+    arn         = optional(string)
     name        = optional(string)
     description = optional(string)
     encryption_configuration = optional(object({
@@ -108,24 +111,7 @@ variable "firewall_policy_config" {
   default = {}
 }
 
-variable "create_firewall_policy" {
-  description = "Whether to create a firewall policy"
-  type        = bool
-  default     = false
-}
-
-variable "firewall_policy_arn" {
-  description = "ARN of existing firewall policy (if not creating new one)"
-  type        = string
-  default     = null
-}
-
-# Logging Configuration
-variable "enable_logging" {
-  type    = bool
-  default = true
-}
-
+## Logging Configuration
 variable "logging_config" {
   description = <<EOT
 List of logging destinations to configure.
@@ -143,35 +129,26 @@ Example:
   }
 ]
 EOT
-  type = list(object({
-    log_type             = string
-    log_destination_type = string # S3 | CloudWatchLogs | KinesisDataFirehose
-    log_destination_name = string # bucket name or log group name
-  }))
-  default = []
-}
+  type = object({
+    enable             = optional(bool, true)
+    log_retention_days = optional(number, 7)
+    destinations = optional(list(object({
+      log_type             = string
+      log_destination_type = string # S3 | CloudWatchLogs | KinesisDataFirehose
+      log_destination_name = string # bucket name or log group name
+    })), [])
+  })
+  default = {}
 
-
-variable "tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default     = {}
-}
-
-variable "log_retention_days" {
-  description = "CloudWatch log retention period in days"
-  type        = number
-  default     = 7
   validation {
     condition = contains([
       1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
-    ], var.log_retention_days)
+    ], var.logging_config.log_retention_days)
     error_message = "Log retention days must be a valid CloudWatch retention period."
   }
 }
 
-
-# Resource Policy Configuration
+## Firewall Resource Policy Configurations
 variable "create_firewall_policy_resource_policy" {
   description = "Whether to create a resource policy for the firewall policy"
   type        = bool
@@ -194,7 +171,7 @@ variable "firewall_policy_resource_policy" {
   }
 }
 
-
+## Rule Group Resource Policy Configurations
 variable "create_rule_group_resource_policy" {
   description = "Whether to attach a resource policy to the Rule Group"
   type        = bool
@@ -218,22 +195,17 @@ variable "rule_group_resource_policy" {
 }
 
 ## TLS Inspection Configuration
-variable "create_tls_inspection_configuration" {
-  description = "Whether to create a TLS inspection configuration"
-  type        = bool
-  default     = false
-}
-
 variable "tls_inspection_configuration" {
   description = "TLS inspection configuration"
   type = object({
+    create      = optional(bool, false)
     name        = optional(string)
     description = optional(string)
     encryption_configuration = optional(object({
       key_id = optional(string)
       type   = optional(string, "AWS_OWNED_KMS_KEY")
     }))
-    server_certificate_configurations = list(object({
+    server_certificate_configurations = optional(list(object({
       certificate_authority_arn = optional(string)
       check_certificate_revocation_status = optional(object({
         revoked_status_action = optional(string, "REJECT")
@@ -259,29 +231,22 @@ variable "tls_inspection_configuration" {
           to_port   = optional(number)
         })), [])
       }))
-    }))
+    })), [])
     timeouts = optional(object({
       create = optional(string)
       update = optional(string)
       delete = optional(string)
     }))
   })
-  default = {
-    server_certificate_configurations = []
-  }
+  default = {}
 }
 
 
-## Firewall Rule Group Configuration ##
-variable "create_rule_group" {
-  description = "Controls whether the Network Firewall Rule Group should be created"
-  type        = bool
-  default     = false
-}
-
+## Rule Group Configuration
 variable "rule_group_config" {
   description = "Complete rule group configuration in one object"
   type = object({
+    create      = optional(bool, false)
     description = optional(string)
     capacity    = optional(number)
     type        = optional(string)
@@ -359,21 +324,22 @@ variable "rule_group_config" {
 
 
 ## VPC Endpoint
-variable "create_vpc_endpoint_association" {
-  type        = bool
-  description = "Whether to create the Network Firewall VPC Endpoint Association"
-  default     = false
-}
-
 variable "vpc_endpoint_association" {
   type = object({
+    create      = optional(bool, false)
     description = optional(string)
-    subnet_mappings = list(object({
+    subnet_mappings = optional(list(object({
       subnet_id       = string
       ip_address_type = optional(string) # IPV4 or DUALSTACK
-    }))
+    })), [])
   })
 
   description = "Configuration for VPC Endpoint Association"
-  default     = null
+  default     = {}
+}
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+  default     = {}
 }

@@ -35,7 +35,9 @@ module "arc-network-firewall" {
   vpc_id                  = "vpc-12345678"
   subnet_ids              = ["subnet-12345678", "subnet-87654321"]
   create_firewall         = true
-  create_firewall_policy  = true
+  firewall_policy_config  = {
+    create      = true
+  }
 
   tags = {
     Environment = "production"

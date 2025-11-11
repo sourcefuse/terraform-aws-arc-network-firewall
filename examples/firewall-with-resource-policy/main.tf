@@ -21,10 +21,13 @@ module "network_firewall" {
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
 
-  create_firewall        = true
-  create_firewall_policy = true
+  create_firewall = true
 
   # Resource policy for firewall policy
+  firewall_policy_config = {
+    create = true
+  }
+
   create_firewall_policy_resource_policy = true
   firewall_policy_resource_policy = {
     statements = [

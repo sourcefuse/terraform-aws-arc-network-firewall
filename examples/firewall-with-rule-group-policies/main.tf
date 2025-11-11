@@ -22,10 +22,8 @@ module "network_firewall" {
   vpc_id     = data.aws_vpc.default.id
   subnet_ids = slice(data.aws_subnets.public.ids, 0, min(2, length(data.aws_subnets.public.ids)))
 
-
-  create_rule_group = true
-
   rule_group_config = {
+    create   = true
     type     = "STATEFUL"
     capacity = 100
 
@@ -40,8 +38,11 @@ module "network_firewall" {
     }
   }
 
+
+  firewall_policy_config = {
+    create = true
+  }
   # Resource policy for firewall policy
-  create_firewall_policy                 = true
   create_firewall_policy_resource_policy = true
   firewall_policy_resource_policy = {
     statements = [

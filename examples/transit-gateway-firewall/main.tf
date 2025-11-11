@@ -48,8 +48,10 @@ module "network_firewall" {
   name        = var.firewall_name
   description = "Transit Gateway-attached Network Firewall"
 
-  create_firewall        = true
-  create_firewall_policy = true
+  create_firewall = true
+  firewall_policy_config = {
+    create = true
+  }
 
   # Transit Gateway Setup
   availability_zones = slice(data.aws_availability_zones.available.zone_ids, 0, 2)

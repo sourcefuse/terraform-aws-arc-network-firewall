@@ -11,29 +11,6 @@ This example demonstrates a production-ready AWS Network Firewall deployment wit
 - **Production Protection**: All firewall protection settings enabled
 - **Advanced Engine Options**: Strict order rule processing
 
-## Configuration Variables
-
-### Traffic Scoping
-```hcl
-web_server_destinations = [
-  { address_definition = "10.0.1.0/24" },
-  { address_definition = "10.0.2.0/24" }
-]
-
-api_allowed_sources = [
-  { address_definition = "203.0.113.0/24" },  # Partner network
-  { address_definition = "198.51.100.0/24" }  # Management network
-]
-```
-
-### Revocation Policy
-```hcl
-revocation_policy = {
-  revoked_action = "REJECT"  # Block revoked certificates
-  unknown_action = "PASS"    # Allow unknown status (connectivity issues)
-}
-```
-
 ## Best Practices
 
 ### Certificate Management

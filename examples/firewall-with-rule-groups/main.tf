@@ -31,8 +31,8 @@ module "network_firewall" {
     availability_zone_change_protection = false
   }
 
-  create_firewall_policy = true
   firewall_policy_config = {
+    create      = true
     name        = "${var.firewall_name}-policy"
     description = "Advanced policy with stateful and stateless rules"
 
@@ -59,8 +59,8 @@ module "network_firewall" {
   }
 
   # # Rule Groups
-  create_rule_group = true
   rule_group_config = {
+    create   = true
     type     = "STATEFUL"
     capacity = 100
 

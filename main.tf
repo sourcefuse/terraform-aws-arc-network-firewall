@@ -61,7 +61,7 @@ resource "aws_networkfirewall_firewall" "this" {
 ### Network Firewall Policy
 ##########################################
 resource "aws_networkfirewall_firewall_policy" "this" {
-  count = var.create_firewall_policy ? 1 : 0
+  count = try(var.firewall_policy_config.create, false) ? 1 : 0
 
   name        = coalesce(try(var.firewall_policy_config.name, null), "${var.name}-policy")
   description = lookup(var.firewall_policy_config, "description", null)
@@ -162,7 +162,7 @@ module "s3_firewall_logs" {
   version = "0.0.5"
 
   for_each = {
-    for c in var.logging_config : c.log_destination_name => c
+    for c in try(var.logging_config.destinations, []) : c.log_destination_name => c
     if c.log_destination_type == "S3"
   }
   force_destroy = true
@@ -174,26 +174,26 @@ module "s3_firewall_logs" {
 ## Create CloudWatch Log Groups if enabled
 resource "aws_cloudwatch_log_group" "firewall_logs" {
   for_each = {
-    for c in var.logging_config : c.log_destination_name => c
+    for c in try(var.logging_config.destinations, []) : c.log_destination_name => c
     if c.log_destination_type == "CloudWatchLogs"
   }
 
   name              = "/aws/network-firewall/${each.key}"
-  retention_in_days = var.log_retention_days
+  retention_in_days = try(var.logging_config.log_retention_days, 7)
 }
 
 ##############################################
 ### Network Firewall Logging Configuration
 ##############################################
 resource "aws_networkfirewall_logging_configuration" "this" {
-  count = var.enable_logging && length(var.logging_config) > 0 ? 1 : 0
+  count = try(var.logging_config.enable, true) && length(try(var.logging_config.destinations, [])) > 0 ? 1 : 0
 
   firewall_arn = aws_networkfirewall_firewall.this[0].arn
 
 
   logging_configuration {
     dynamic "log_destination_config" {
-      for_each = var.logging_config
+      for_each = try(var.logging_config.destinations, [])
       content {
         log_type             = log_destination_config.value.log_type
         log_destination_type = log_destination_config.value.log_destination_type
@@ -219,12 +219,12 @@ resource "aws_networkfirewall_logging_configuration" "this" {
 ### Network Firewall VPC Endpoint  Configuration
 ##################################################
 resource "aws_networkfirewall_vpc_endpoint_association" "this" {
-  for_each = var.create_vpc_endpoint_association && var.vpc_endpoint_association != null ? { for idx, s in var.vpc_endpoint_association.subnet_mappings : idx => s } : {}
+  for_each = try(var.vpc_endpoint_association.create, false) && length(try(var.vpc_endpoint_association.subnet_mappings, [])) > 0 ? { for idx, s in var.vpc_endpoint_association.subnet_mappings : idx => s } : {}
 
 
   firewall_arn = aws_networkfirewall_firewall.this[0].arn
   vpc_id       = local.is_vpc_attached ? var.vpc_id : null
-  description  = lookup(var.vpc_endpoint_association, "description", null)
+  description  = try(var.vpc_endpoint_association.description, null)
   subnet_mapping {
     subnet_id       = each.value.subnet_id
     ip_address_type = lookup(each.value, "ip_address_type", null)
@@ -237,7 +237,7 @@ resource "aws_networkfirewall_vpc_endpoint_association" "this" {
 ### Network Firewall Rule Group Configuration
 ########################################################
 resource "aws_networkfirewall_rule_group" "this" {
-  count       = var.create_rule_group ? 1 : 0
+  count       = try(var.rule_group_config.create, false) ? 1 : 0
   name        = "${var.name}-rule-group"
   description = lookup(var.rule_group_config, "description", null)
   capacity    = lookup(var.rule_group_config, "capacity", 100)
@@ -396,7 +396,7 @@ resource "aws_networkfirewall_rule_group" "this" {
 ### Network Firewall Resource Policy for Firewall Policy
 ###########################################################
 resource "aws_networkfirewall_resource_policy" "firewall_policy" {
-  count = var.create_firewall_policy && var.create_firewall_policy_resource_policy ? 1 : 0
+  count = try(var.firewall_policy_config.create, false) && var.create_firewall_policy_resource_policy ? 1 : 0
 
   resource_arn = aws_networkfirewall_firewall_policy.this[0].arn
 
@@ -422,7 +422,7 @@ resource "aws_networkfirewall_resource_policy" "firewall_policy" {
 ### Network Firewall Resource Policy for Rule Group
 ###########################################################
 resource "aws_networkfirewall_resource_policy" "example" {
-  count        = var.create_rule_group && var.create_rule_group_resource_policy ? 1 : 0
+  count        = try(var.rule_group_config.create, false) && var.create_rule_group_resource_policy ? 1 : 0
   resource_arn = aws_networkfirewall_rule_group.this[0].arn
   # policy's Action element must include all of the following operations
   policy = jsonencode({
@@ -446,7 +446,7 @@ resource "aws_networkfirewall_resource_policy" "example" {
 ### TLS Inspection Configuration
 ###############################################
 resource "aws_networkfirewall_tls_inspection_configuration" "this" {
-  count = var.create_tls_inspection_configuration ? 1 : 0
+  count = try(var.tls_inspection_configuration.create, false) ? 1 : 0
 
   name        = coalesce(var.tls_inspection_configuration.name, "${var.name}-tls-inspection")
   description = var.tls_inspection_configuration.description
@@ -461,7 +461,7 @@ resource "aws_networkfirewall_tls_inspection_configuration" "this" {
 
   tls_inspection_configuration {
     dynamic "server_certificate_configuration" {
-      for_each = var.tls_inspection_configuration.server_certificate_configurations
+      for_each = try(var.tls_inspection_configuration.server_certificate_configurations, [])
       content {
         certificate_authority_arn = server_certificate_configuration.value.certificate_authority_arn
 
