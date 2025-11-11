@@ -1,11 +1,10 @@
 ---
 name: Bump version
-on:  # yamllint disable-line rule:truthy
+on:        # yamllint disable-line rule:truthy
   push:
     branches:
       - main
-permissions:
-  contents: write
+      - feature/terraform-networkfirewall-module
 jobs:
   build:
     runs-on: ubuntu-latest
