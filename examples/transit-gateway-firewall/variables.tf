@@ -1,0 +1,29 @@
+variable "region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "environment" {
+  type        = string
+  description = "Name of the environment, i.e. dev, stage, prod"
+  default     = "poc"
+}
+
+variable "namespace" {
+  type        = string
+  default     = "arc"
+  description = "Namespace of the project, i.e. arc"
+}
+
+variable "firewall_name" {
+  description = "Name of the Network Firewall"
+  type        = string
+  default     = "tgw-network-firewall"
+}
+
+variable "delete_protection" {
+  description = "Enable deletion protection for the firewall"
+  type        = bool
+  default     = false
+}
