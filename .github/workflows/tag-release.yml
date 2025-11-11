@@ -4,7 +4,6 @@ on:        # yamllint disable-line rule:truthy
   push:
     branches:
       - main
-      - feature/terraform-networkfirewall-module
 permissions:
   contents: write
 jobs:
