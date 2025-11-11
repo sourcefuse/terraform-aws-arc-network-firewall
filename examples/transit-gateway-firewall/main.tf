@@ -56,7 +56,6 @@ module "network_firewall" {
   # Transit Gateway Setup
   availability_zones = slice(data.aws_availability_zones.available.zone_ids, 0, 2)
 
-  # ✅ NEW: everything consolidated into firewall_config
   firewall_config = {
     transit_gateway_id = aws_ec2_transit_gateway.main.id
 
