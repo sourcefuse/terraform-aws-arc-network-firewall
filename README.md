@@ -239,7 +239,6 @@ The complete inputs/outputs reference is auto-generated below.
 
 
 ## Contributing
-
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for commit conventions and development setup.
 
 ## Authors
