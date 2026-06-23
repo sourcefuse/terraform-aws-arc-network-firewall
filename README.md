@@ -17,6 +17,9 @@
 
 [![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=sourcefuse_terraform-aws-arc-network-firewall&token=50e6ee25f84e3f8c4a858442d123b2942008e212)](https://sonarcloud.io/summary/new_code?id=sourcefuse_terraform-aws-arc-network-firewall)
 
+> [!TIP]
+> 🤖 **New:** Use this module with AI assistants via the [ARC IaC MCP Server](https://github.com/sourcefuse/arc-iac-mcp) — search, scaffold, and security-scan ARC modules from natural language. [Quick setup ↓](#ai-assistant-integration-arc-iac-mcp)
+
 ## Overview
 
 Creates AWS Network Firewall with stateless and stateful rule groups, firewall policies, and logging configuration.
